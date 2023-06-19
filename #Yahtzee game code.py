@@ -3,17 +3,27 @@ import random
 #Game code
 
 class Game:             # Game class
+
+
+    REROLLS = 2
+    DICE = 5
+
     def __init__(self):
         self.dice = Dice()
         self.scorecard = Scorecard()
         self.roundnum = 0
+        self.rerolls = 0        
 
     def round(self):
         self.roundnum += 1
-        print(self.dice.roll())
-        self.scorecard.show_scorecard()
-        (self.dice.reroll())*3
+        self.dice.roll()
+        
+        while self.rerolls < Game.REROLLS:
+            self.dice.reroll()
+            self.rerolls += 1
+        
         self.scorecard.score_roll(self.dice)
+        self.scorecard.show_scorecard()
 
     def run(self):
         while self.roundnum < 13:
@@ -37,7 +47,12 @@ class Scorecard:        # Scorecard class - built in scoring methods
             "yahtzee": None,
             "chance": None
         }
+        self.score = 0
+        self.bonus = 0
+        self.upper_score = 0
+        self.lower_score = 0
 
+    
     def show_scorecard(self):
         print("Scorecard")
         for key, value in self.scorecard.items():
@@ -105,44 +120,90 @@ class Scorecard:        # Scorecard class - built in scoring methods
         return dice.count(5) * 5
     
     def score_sixes(self, dice):
-        return dice.count(6) * 6
+        return self.dice.count(6) * 6
     
-    # def score_three_of_a_kind(self, dice):
+    def score_three_of_a_kind(self, dice):
+        for die in dice:
+            if dice.count(die) >= 3:
+                return sum(dice)
+            else:
+                return 0
         
-    # def score_four_of_a_kind(self, dice):
+    def score_four_of_a_kind(self, dice):
+        for die in dice:
+            if dice.count(die) >= 4:
+                return sum(dice)
+            else:
+                return 0
 
-    # def score_full_house(self, dice):
+    def score_full_house(self, dice):
+        for die in self.dice:
+            if dice.count(die) == 3:
+                for die in dice:
+                    if dice.count(die) == 2:
+                        return 25
+            else:
+                return 0
 
-    # def score_small_straight(self, dice):
+    def score_small_straight(self, dice):
+        if sorted(dice) == [1, 2, 3, 4, 5]:
+            return 30
+        else:
+            return 0
 
-    # def score_large_straight(self, dice):
+    def score_large_straight(self, dice):
+        if sorted(dice) == [2, 3, 4, 5, 6]:
+            return 40
+        else:
+            return 0
     
-    # def score_yahtzee(self, dice):
+    def score_yahtzee(self, dice):
+        for die in dice:
+            if dice.count(die) == 5:
+                return 50
+            else:
+                return 0
 
     def score_chance(self, dice):
         return sum(dice)
     
-
+    def count_score(self):
+        for key, value in self.scorecard.items():
+            if key in ["ones", "twos", "threes", "fours", "fives", "sixes"]:
+                self.upper_score += value
+            else:
+                self.lower_score += value
+        if self.upper_score >= 63:
+            self.bonus = 35
+        self.score = self.upper_score + self.lower_score + self.bonus
+        return self.score
+    
+    
 class Dice:         # Dice class
     def __init__(self):
         self.dice = [0, 0, 0, 0, 0]
 
     def roll(self):
-        for item in self.dice:
-            item = random.randint(1, 6)
-        return self.dice
-        
+        # roll each of the dice in self.dice for a random number between 1 and 6
+        for index in range(len(self.dice)):
+            self.dice[index] = random.randint(1, 6)
+        return print(self.dice)
+
+                   
     def reroll(self):
-        for item in self.dice:
-            choice = input("Would you like to reroll this die? {item} (y/n)")
+        for index in range(len(self.dice)):
+            choice = input(f"Would you like to reroll this die? :{self.dice[index]} (y/n)")
             if choice == "y":
-                item = random.randint(1, 6)
+                self.dice[index] = random.randint(1, 6)
             else:
                 pass
-
+        return print(self.dice)
+    
+    #counts the instances of a given number in the dice list
     def count(self, number):
         return self.dice.count(number)
     
+
 if __name__ == "__main__":    # Main function
     game = Game()
     game.run()
