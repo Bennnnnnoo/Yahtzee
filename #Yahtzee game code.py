@@ -1,6 +1,6 @@
 #Yahtzee game code
 import random
-#Game code
+
 
 class Game:             # Game class
 
@@ -24,6 +24,7 @@ class Game:             # Game class
         
         self.scorecard.score_roll(self.dice)
         self.scorecard.show_scorecard()
+        self.rerolls = 0 
 
     def run(self):
         while self.roundnum < 13:
@@ -52,6 +53,15 @@ class Scorecard:        # Scorecard class - built in scoring methods
         self.upper_score = 0
         self.lower_score = 0
 
+# add in choice validation, prevent user from choosing same option twice
+
+    def get_choice(self):
+        try:
+            choice = int(input("Enter your choice: "))
+        except ValueError:
+            print("Invalid choice")
+            choice = self.get_choice()
+        return choice
     
     def show_scorecard(self):
         print("Scorecard")
@@ -69,12 +79,15 @@ class Scorecard:        # Scorecard class - built in scoring methods
         print("6. Sixes")
         print("7. Three of a kind") 
         print("8. Four of a kind")
-        print("9. Full house")  # Add in validation later
-        print("10. Small straight") # Add in validation later
-        print("11. Large straight") # Add in validation later
-        print("12. Yahtzee") # Add in validation later
+        print("9. Full house")  
+        print("10. Small straight") 
+        print("11. Large straight") 
+        print("12. Yahtzee") 
         print("13. Chance")
-        choice = int(input("Enter the number of your choice: "))
+        choice = self.get_choice()
+
+
+
         if choice == 1:
             self.scorecard["ones"] = self.score_ones(dice)
         elif choice == 2:
@@ -120,52 +133,64 @@ class Scorecard:        # Scorecard class - built in scoring methods
         return dice.count(5) * 5
     
     def score_sixes(self, dice):
-        return self.dice.count(6) * 6
+        return dice.count(6) * 6
     
     def score_three_of_a_kind(self, dice):
-        for die in dice:
+        for die in dice.get_dice():
             if dice.count(die) >= 3:
                 return sum(dice)
             else:
                 return 0
-        
+    
+    
     def score_four_of_a_kind(self, dice):
-        for die in dice:
+        for die in dice.get_dice():
             if dice.count(die) >= 4:
                 return sum(dice)
             else:
                 return 0
+       
+      
 
     def score_full_house(self, dice):
-        for die in self.dice:
+        for die in dice.get_dice():
             if dice.count(die) == 3:
-                for die in dice:
+                for die in dice.get_dice():
                     if dice.count(die) == 2:
                         return 25
             else:
                 return 0
 
     def score_small_straight(self, dice):
-        if sorted(dice) == [1, 2, 3, 4, 5]:
+        sortedlist = []
+        for die in sorted(dice.get_dice()):
+            if die not in sortedlist:
+                sortedlist.append(die)
+        if sortedlist == [1, 2, 3, 4] or sortedlist == [2, 3, 4, 5] or sortedlist == [3, 4, 5, 6]:
             return 30
         else:
             return 0
+       
+        # check quicker using regex?
+        
+     
+
 
     def score_large_straight(self, dice):
-        if sorted(dice) == [2, 3, 4, 5, 6]:
+        if sorted(dice.get_dice()) == [2, 3, 4, 5, 6] or sorted(dice.get_dice()) == [1, 2, 3, 4, 5]:
             return 40
         else:
             return 0
     
     def score_yahtzee(self, dice):
-        for die in dice:
+        for die in dice.get_dice():
             if dice.count(die) == 5:
                 return 50
             else:
                 return 0
 
     def score_chance(self, dice):
-        return sum(dice)
+        return sum(dice.get_dice())
     
     def count_score(self):
         for key, value in self.scorecard.items():
@@ -181,8 +206,19 @@ class Scorecard:        # Scorecard class - built in scoring methods
     
 class Dice:         # Dice class
     def __init__(self):
-        self.dice = [0, 0, 0, 0, 0]
+        self.dice = [0 for i in range(Game.DICE)]
+        
 
+    #def __repr__(self) -> str:
+        #return f"{self.dice}"
+
+    def get_dice(self):
+        return self.dice
+
+    def get_reroll_choice(self):
+        choice = input(f"Would you like to reroll this die? : (y/n)")
+        return choice
+    
     def roll(self):
         # roll each of the dice in self.dice for a random number between 1 and 6
         for index in range(len(self.dice)):
@@ -192,7 +228,8 @@ class Dice:         # Dice class
                    
     def reroll(self):
         for index in range(len(self.dice)):
-            choice = input(f"Would you like to reroll this die? :{self.dice[index]} (y/n)")
+            print(self.dice[index])
+            choice = self.get_reroll_choice()
             if choice == "y":
                 self.dice[index] = random.randint(1, 6)
             else:
@@ -203,6 +240,17 @@ class Dice:         # Dice class
     def count(self, number):
         return self.dice.count(number)
     
+
+# User interface for yahtzee
+#class Ui:
+    #def __init__(self):
+     #   pass
+
+    #def get_choice(self):
+     #   choice = input("Enter choice: ")
+      #  return int(choice)
+    
+
 
 if __name__ == "__main__":    # Main function
     game = Game()
