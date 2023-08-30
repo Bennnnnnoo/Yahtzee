@@ -16,7 +16,7 @@ class Game:             # Game class
 
     def round(self):
         self.roundnum += 1
-       # self.dice.roll()
+        self.dice.roll()
         
         while self.rerolls < Game.REROLLS:
             self.dice.reroll()
@@ -34,19 +34,19 @@ class Game:             # Game class
 class Scorecard:        # Scorecard class - built in scoring methods
     def __init__(self):
         self.scorecard = {
-            "ones": None,
-            "twos": None,
-            "threes": None,
-            "fours": None,
-            "fives": None,
-            "sixes": None,
-            "three of a kind": None,
-            "four of a kind": None,
-            "full house": None,
-            "small straight": None,
-            "large straight": None,
-            "yahtzee": None,
-            "chance": None
+            "1.ones": None,
+            "2.twos": None,
+            "3.threes": None,
+            "4.fours": None,
+            "5.fives": None,
+            "6.sixes": None,
+            "7.three of a kind": None,
+            "8.four of a kind": None,
+            "9.full house": None,
+            "10small straight": None,
+            "11.large straight": None,
+            "12.yahtzee": None,
+            "13.chance": None
         }
         self.score = 0
         self.bonus = 0
@@ -62,8 +62,8 @@ class Scorecard:        # Scorecard class - built in scoring methods
             choice = int(input("Enter your choice: "))
             if choice not in range(1, 14):
                 choice = self.get_choice()
-            #if self.scorecard[choice] is not None:
-            #    choice = self.get_choice()
+            if self.scorecard[choice] != None:
+                choice = self.get_choice()
         except ValueError or TypeError:
             print("Invalid choice")
             choice = self.get_choice()
@@ -76,50 +76,38 @@ class Scorecard:        # Scorecard class - built in scoring methods
 
     def score_roll(self, dice):
 
-        print("How would you like to score this roll?")
-        print("1. Ones")
-        print("2. Twos")
-        print("3. Threes")
-        print("4. Fours")
-        print("5. Fives")
-        print("6. Sixes")
-        print("7. Three of a kind") 
-        print("8. Four of a kind")
-        print("9. Full house")  
-        print("10. Small straight") 
-        print("11. Large straight") 
-        print("12. Yahtzee") 
-        print("13. Chance")
+        print("Enter the number of the category you would like to score")
+        self.show_scorecard()
         choice = self.get_choice()
 
 
 
         if choice == 1:
-            self.scorecard["ones"] = self.score_ones(dice)
+            self.scorecard["1.ones"] = self.score_ones(dice)
         elif choice == 2:
-            self.scorecard["twos"] = self.score_twos(dice)
+            self.scorecard["2.twos"] = self.score_twos(dice)
         elif choice == 3:
-            self.scorecard["threes"] = self.score_threes(dice)
+            self.scorecard["3.threes"] = self.score_threes(dice)
         elif choice == 4:
-            self.scorecard["fours"] = self.score_fours(dice)
+            self.scorecard["4.fours"] = self.score_fours(dice)
         elif choice == 5:
-            self.scorecard["fives"] = self.score_fives(dice)
+            self.scorecard["5.fives"] = self.score_fives(dice)
         elif choice == 6:
-            self.scorecard["sixes"] = self.score_sixes(dice)
+            self.scorecard["6.sixes"] = self.score_sixes(dice)
         elif choice == 7:
-            self.scorecard["three of a kind"] = self.score_three_of_a_kind(dice)
+            self.scorecard["7.three of a kind"] = self.score_three_of_a_kind(dice)
         elif choice == 8:
-            self.scorecard["four of a kind"] = self.score_four_of_a_kind(dice)
+            self.scorecard["8.four of a kind"] = self.score_four_of_a_kind(dice)
         elif choice == 9:
-            self.scorecard["full house"] = self.score_full_house(dice)
+            self.scorecard["9.full house"] = self.score_full_house(dice)
         elif choice == 10:
-            self.scorecard["small straight"] = self.score_small_straight(dice)
+            self.scorecard["10.small straight"] = self.score_small_straight(dice)
         elif choice == 11:
-            self.scorecard["large straight"] = self.score_large_straight(dice)
+            self.scorecard["11.large straight"] = self.score_large_straight(dice)
         elif choice == 12:
-            self.scorecard["yahtzee"] = self.score_yahtzee(dice)
+            self.scorecard["12.yahtzee"] = self.score_yahtzee(dice)
         elif choice == 13:
-            self.scorecard["chance"] = self.score_chance(dice)
+            self.scorecard["13.chance"] = self.score_chance(dice)
         else:
             print("Invalid choice")
 
@@ -217,8 +205,8 @@ class Scorecard:        # Scorecard class - built in scoring methods
     
 class Dice:         # Dice class
     def __init__(self):
-        self.dice = [5,2,1,4,3]     #test case
-     #   self.dice = [0 for i in range(Game.DICE)]
+    #    self.dice = [5,2,1,4,3]     #test case
+        self.dice = [0 for i in range(Game.DICE)]
         
 
     #def __repr__(self) -> str:
@@ -227,20 +215,20 @@ class Dice:         # Dice class
     def get_dice(self):
         return self.dice
 
-    def get_reroll_choice(self):
+    def get_reroll_choice(self,dice):
 
         # validate user input for reroll choice
-
+        
         try:
-            choice = input(f"Would you like to reroll this die? : (y/n)")
+            choice = input(f"Would you like to reroll {dice} : (y/n)")
             if choice not in ["y", "n"]:
                 print("Invalid choice")
-                choice = self.get_reroll_choice()
+                choice = self.get_reroll_choice(dice)
 
         except ValueError or TypeError:
             print("Invalid choice")
-            choice = self.get_reroll_choice()
-        
+            choice = self.get_reroll_choice(dice)
+    
         return choice
     
     def roll(self):
@@ -249,11 +237,13 @@ class Dice:         # Dice class
             self.dice[index] = random.randint(1, 6)
         return print(self.dice)
 
+
+    
                    
     def reroll(self):
         for index in range(len(self.dice)):
-            print(self.dice[index])
-            choice = self.get_reroll_choice()
+            
+            choice = self.get_reroll_choice(self.dice[index])
             if choice == "y":
                 self.dice[index] = random.randint(1, 6)
             else:
