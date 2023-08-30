@@ -16,7 +16,7 @@ class Game:             # Game class
 
     def round(self):
         self.roundnum += 1
-        self.dice.roll()
+       # self.dice.roll()
         
         while self.rerolls < Game.REROLLS:
             self.dice.reroll()
@@ -55,10 +55,16 @@ class Scorecard:        # Scorecard class - built in scoring methods
 
 # add in choice validation, prevent user from choosing same option twice
 
+
+
     def get_choice(self):
         try:
             choice = int(input("Enter your choice: "))
-        except ValueError:
+            if choice not in range(1, 14):
+                choice = self.get_choice()
+            #if self.scorecard[choice] is not None:
+            #    choice = self.get_choice()
+        except ValueError or TypeError:
             print("Invalid choice")
             choice = self.get_choice()
         return choice
@@ -138,7 +144,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
     def score_three_of_a_kind(self, dice):
         for die in dice.get_dice():
             if dice.count(die) >= 3:
-                return sum(dice)
+                return sum(dice.get_dice())
             else:
                 return 0
     
@@ -146,27 +152,32 @@ class Scorecard:        # Scorecard class - built in scoring methods
     def score_four_of_a_kind(self, dice):
         for die in dice.get_dice():
             if dice.count(die) >= 4:
-                return sum(dice)
+                return sum(dice.get_dice())
             else:
                 return 0
        
+
+
+  
+        
       
 
     def score_full_house(self, dice):
+        countlist = []
         for die in dice.get_dice():
-            if dice.count(die) == 3:
-                for die in dice.get_dice():
-                    if dice.count(die) == 2:
-                        return 25
-            else:
-                return 0
+            countlist.append(dice.count(die))
+        if 3 in countlist and 2 in countlist:
+            return 25
+        else:
+            return 0
+
 
     def score_small_straight(self, dice):
         sortedlist = []
         for die in sorted(dice.get_dice()):
             if die not in sortedlist:
                 sortedlist.append(die)
-        if sortedlist == [1, 2, 3, 4] or sortedlist == [2, 3, 4, 5] or sortedlist == [3, 4, 5, 6]:
+        if sortedlist == [1, 2, 3, 4] or sortedlist == [2, 3, 4, 5] or sortedlist == [3, 4, 5, 6] or sortedlist == [1, 2, 3, 4, 5] or sortedlist == [2, 3, 4, 5, 6]:
             return 30
         else:
             return 0
@@ -206,7 +217,8 @@ class Scorecard:        # Scorecard class - built in scoring methods
     
 class Dice:         # Dice class
     def __init__(self):
-        self.dice = [0 for i in range(Game.DICE)]
+        self.dice = [5,2,1,4,3]     #test case
+     #   self.dice = [0 for i in range(Game.DICE)]
         
 
     #def __repr__(self) -> str:
@@ -216,7 +228,19 @@ class Dice:         # Dice class
         return self.dice
 
     def get_reroll_choice(self):
-        choice = input(f"Would you like to reroll this die? : (y/n)")
+
+        # validate user input for reroll choice
+
+        try:
+            choice = input(f"Would you like to reroll this die? : (y/n)")
+            if choice not in ["y", "n"]:
+                print("Invalid choice")
+                choice = self.get_reroll_choice()
+
+        except ValueError or TypeError:
+            print("Invalid choice")
+            choice = self.get_reroll_choice()
+        
         return choice
     
     def roll(self):
