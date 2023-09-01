@@ -13,10 +13,15 @@ class Game:             # Game class
         self.scorecard = Scorecard()
         self.roundnum = 0
         self.rerolls = 0        
+        #allow multiple players
+        #self.players = []
+
+        
 
     def round(self):
         self.roundnum += 1
         self.dice.roll()
+        
         
         while self.rerolls < Game.REROLLS:
             self.dice.reroll()
@@ -27,8 +32,43 @@ class Game:             # Game class
         self.rerolls = 0 
 
     def run(self):
+        #players = int(input("Enter the number of players: "))
+        #for player in range(players):
+        #    self.players.append(Player())
         while self.roundnum < 13:
             self.round()
+'''
+class Player:           # Player class
+    def __init__(self):
+        self.name = input("Enter your name: ")
+        self.scorecard = Scorecard()
+        self.score = 0
+        self.bonus = 0
+        self.upper_score = 0
+        self.lower_score = 0
+        self.total_score = 0
+    
+    def get_name(self):
+        return self.name
+    
+    def get_scorecard(self):
+        return self.scorecard
+    
+    def get_score(self):
+        return self.score
+    
+    def get_bonus(self):
+        return self.bonus
+    
+    def get_upper_score(self):
+        return self.upper_score
+    
+    def get_lower_score(self):
+        return self.lower_score
+    
+    def get_total_score(self):
+        return self.total_score
+'''    
 
 
 class Scorecard:        # Scorecard class - built in scoring methods
@@ -43,7 +83,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
             "7.three of a kind": None,
             "8.four of a kind": None,
             "9.full house": None,
-            "10small straight": None,
+            "10.small straight": None,
             "11.large straight": None,
             "12.yahtzee": None,
             "13.chance": None
@@ -52,6 +92,8 @@ class Scorecard:        # Scorecard class - built in scoring methods
         self.bonus = 0
         self.upper_score = 0
         self.lower_score = 0
+        self.total_score = 0
+        self.keylist = [key for key in self.scorecard.keys()]
 
 # add in choice validation, prevent user from choosing same option twice
 
@@ -62,7 +104,8 @@ class Scorecard:        # Scorecard class - built in scoring methods
             choice = int(input("Enter your choice: "))
             if choice not in range(1, 14):
                 choice = self.get_choice()
-            if self.scorecard[choice] != None:
+            #prevent user from choosing same option twice
+            if self.scorecard[self.keylist[choice-1]] != None:
                 choice = self.get_choice()
         except ValueError or TypeError:
             print("Invalid choice")
