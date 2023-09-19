@@ -14,7 +14,7 @@ class Game:             # Game class
         self.roundnum = 0
         self.rerolls = 0        
         #allow multiple players
-        #self.players = []
+        self.players = []
 
         
 
@@ -32,12 +32,13 @@ class Game:             # Game class
         self.rerolls = 0 
 
     def run(self):
-        #players = int(input("Enter the number of players: "))
-        #for player in range(players):
-        #    self.players.append(Player())
-        while self.roundnum < 13:
+        print ("Welcome to Yahtzee!")
+        players = int(input("Enter the number of players: "))
+        for player in range(players):
+            self.players.append(Player())
+        while self.roundnum < 13*len(self.players):
             self.round()
-'''
+
 class Player:           # Player class
     def __init__(self):
         self.name = input("Enter your name: ")
@@ -68,7 +69,7 @@ class Player:           # Player class
     
     def get_total_score(self):
         return self.total_score
-'''    
+ 
 
 
 class Scorecard:        # Scorecard class - built in scoring methods
@@ -101,7 +102,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
 
     def get_choice(self):
         try:
-            choice = int(input("Enter your choice: "))
+            choice = (input("Enter your choice: "))
             if choice not in range(1, 14):
                 choice = self.get_choice()
             #prevent user from choosing same option twice
@@ -297,6 +298,7 @@ class Dice:         # Dice class
     def count(self, number):
         return self.dice.count(number)
     
+
 
 # User interface for yahtzee
 #class Ui:
