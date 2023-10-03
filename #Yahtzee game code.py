@@ -1,5 +1,7 @@
 #Yahtzee game code
-import random
+import random, math, PySimpleGUI as sg
+
+
 
 
 class Game:             # Game class
@@ -299,7 +301,41 @@ class Dice:         # Dice class
         return self.dice.count(number)
     
 
+#ai player for yahtzee
+class AiPlayer(Player):
+    def __init__(self):
+        self.name = "Computer"
+        self.initial_roll = []
+        
+    def possibleoptions(x,y):
+        C = y.math.factorial(y)/(x.math.factorial(y-x)*y.math.factorial(x))
+        return C
+    
+    
 
+
+    
+
+
+
+
+    def get_choice(self, dice):
+        scores = []
+        
+        
+        return choice
+    
+    def get_reroll_choice(self):
+        choice = random.randint(0, 1)
+        if choice == 0:
+            return "n"
+        else:
+            return "y"
+        
+    
+
+class GUI:
+    
 # User interface for yahtzee
 #class Ui:
     #def __init__(self):
