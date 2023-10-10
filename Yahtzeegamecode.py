@@ -319,11 +319,6 @@ class AiPlayer(Player):
 
 
 
-    def get_choice(self, dice):
-        scores = []
-        
-        
-        return choice
     
     def get_reroll_choice(self):
         choice = random.randint(0, 1)
@@ -335,6 +330,8 @@ class AiPlayer(Player):
     
 
 class GUI:
+
+    pass
     
 # User interface for yahtzee
 #class Ui:
