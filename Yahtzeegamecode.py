@@ -17,6 +17,7 @@ class Game:             # Game class
         self.rerolls = 0        
         #allow multiple players
         self.players = []
+        self.winner = None
 
         
 
@@ -38,8 +39,15 @@ class Game:             # Game class
         players = int(input("Enter the number of players: "))
         for player in range(players):
             self.players.append(Player())
-        while self.roundnum < 13*len(self.players):
+        while self.roundnum < 1*len(self.players):
             self.round()
+        for player in self.players:
+            score = player.get_scorecard().count_score()
+            if score > current_score:
+                current_score = score
+                self.winner = player
+            print(f"{player.get_name()} scored {score} points")
+        print(f"{self.winner.get_name()} wins with {self.winner.get_score()} points")
 
 class Player:           # Player class
     def __init__(self):
@@ -108,8 +116,9 @@ class Scorecard:        # Scorecard class - built in scoring methods
             if choice not in range(1, 14):
                 choice = self.get_choice()
             #prevent user from choosing same option twice
-            if self.scorecard[self.keylist[choice-1]] != None:
-                choice = self.get_choice()
+            ''' if self.scorecard[self.keylist[choice-1]] != None:
+                choice = self.get_choice()'''
+            # check later
         except ValueError or TypeError:
             print("Invalid choice")
             choice = self.get_choice()
