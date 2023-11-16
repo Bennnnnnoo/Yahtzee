@@ -9,6 +9,7 @@ class dice:
     def roll(self, keep):
         self.dice = [randint(1,6) if i not in keep else i for i in range(5)]
 
+
     def count(self, num):
         return self.dice.count(num)
 
@@ -16,7 +17,6 @@ class dice:
         return self.dice
     
 
-    
 
 class Ai_player:
     def __init__(self):
@@ -29,6 +29,7 @@ class Ai_player:
 
         p = 1/6
         q = 1 - p
+
 
         probability = (p**number_of_dice)*(q**(5-number_of_dice))
         expected_value = probability * target_number
@@ -45,4 +46,16 @@ class Ai_player:
 
 
 class game:
+    def __init__(self):
+        self.player = Ai_player()
+        self.turn = 0
+        self.score = 0
+
+    def play(self):
+        while self.turn < 13:
+            self.player.dice.roll([])
+            print(self.player.dice.get_dice())
+            category = self.player.choose_category()
+            print(category)
+            self.turn += 1
 

@@ -9,6 +9,7 @@ class Game:             # Game class
 
     REROLLS = 2
     DICE = 5
+    NUM_ROUNDS = 13
 
     def __init__(self):
         self.dice = Dice()
@@ -18,6 +19,7 @@ class Game:             # Game class
         #allow multiple players
         self.players = []
         self.winner = None
+        self.takennames = []
 
         
 
@@ -38,29 +40,45 @@ class Game:             # Game class
 
     def run(self):
         print ("Welcome to Yahtzee!")
-        players = int(input("Enter the number of players: "))
+        # add in validation to prevent user from entering a non-integer for num of players
+        
+
+
+        while True:
+            try:
+                players = int(input("Enter the number of players: "))
+                break
+            except ValueError:
+                print("Invalid number of players")
+                continue
+            
+                
+
         for player in range(players):
             self.players.append(Player())
-        while self.roundnum < 1*len(self.players):
+       
+        while self.roundnum < game.NUM_ROUNDS:
             self.round()
+        
         current_score = 0
+
         for player in self.players:
             score = player.get_scorecard().count_score()
             if score > current_score:
                 current_score = score
                 self.winner = player
             print(f"{player.get_name()} scored {score} points")
+            
         print(f"{self.winner.get_name()} wins with {self.winner.get_score()} points")
 
 class Player:           # Player class
     def __init__(self):
         self.name = input("Enter your name: ")
+        while self.name in game.takennames:
+            print("Name already taken")
+            self.name = input("Enter your name: ")
+        game.takennames.append(self.name)
         self.scorecard = Scorecard()
-        self.score = Scorecard().count_score()
-        self.bonus = 0
-        self.upper_score = 0
-        self.lower_score = 0
-        self.total_score = 0
     
     def get_name(self):
         return self.name
@@ -69,20 +87,20 @@ class Player:           # Player class
         return self.scorecard
     
     def get_score(self):
-        return self.score
+        return self.scorecard.score
     
     def get_bonus(self):
-        return self.bonus
+        return self.scorecard.bonus
     
     def get_upper_score(self):
-        return self.upper_score
+        return self.scorecard.upper_score
     
     def get_lower_score(self):
-        return self.lower_score
-    # check this
+        return self.scorecard.lower_score
+
 
     def get_total_score(self):
-        return self.total_score
+        return self.scorecard.total_score
  
 
 
