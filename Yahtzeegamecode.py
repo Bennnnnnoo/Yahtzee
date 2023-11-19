@@ -225,12 +225,6 @@ class Scorecard:        # Scorecard class - built in scoring methods
         
         return 0
        
-
-
-  
-        
-      
-
     def score_full_house(self, dice):
         countlist = []
         for die in dice.get_dice():
