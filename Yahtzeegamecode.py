@@ -20,13 +20,22 @@ class Game:             # Game class
         self.players = []
         self.winner = None
         self.takennames = []
-
+        
         
 
-    def round(self):
+    def turn(self,player):
+        self.dice.roll()
+        while self.rerolls < Game.REROLLS:
+            self.dice.reroll()
+            self.rerolls += 1
+        
+
+
+
+    '''def round(self):
         self.roundnum += 1
 
-        for player in game.players:
+        for player in self.players:
             self.dice.roll()
             
             
@@ -36,50 +45,27 @@ class Game:             # Game class
             
             player.scorecard.score_roll(self.dice)
             player.scorecard.show_scorecard()
-            self.rerolls = 0 
+            self.rerolls = 0 '''
 
-    def run(self):
-        print ("Welcome to Yahtzee!")
-        # add in validation to prevent user from entering a non-integer for num of players
-        
-
-
-        while True:
-            try:
-                players = int(input("Enter the number of players: "))
-                break
-            except ValueError:
-                print("Invalid number of players")
-                continue
-            
-                
-
-        for player in range(players):
-            self.players.append(Player())
-       
-        while self.roundnum < game.NUM_ROUNDS:
-            self.round()
+    def get_winner(self):
         
         current_score = 0
-
+    
         for player in self.players:
             score = player.get_scorecard().count_score()
             if score > current_score:
                 current_score = score
                 self.winner = player
-            print(f"{player.get_name()} scored {score} points")
             
-        print(f"{self.winner.get_name()} wins with {self.winner.get_score()} points")
+        return self.winner   
+       # print(f"{self.winner.get_name()} wins with {self.winner.get_score()} points")
 
 class Player:           # Player class
     def __init__(self):
-        self.name = input("Enter your name: ")
-        while self.name in game.takennames:
-            print("Name already taken")
-            self.name = input("Enter your name: ")
-        game.takennames.append(self.name)
+        
+        self.name = None
         self.scorecard = Scorecard()
-    
+
     def get_name(self):
         return self.name
     
@@ -155,11 +141,11 @@ class Scorecard:        # Scorecard class - built in scoring methods
         for key, value in self.scorecard.items():
             print(f"{key}: {value}")
 
-    def score_roll(self, dice):
+    def score_roll(self, dice, choice):
 
-        print("Enter the number of the category you would like to score")
-        self.show_scorecard()
-        choice = self.get_choice()
+        #print("Enter the number of the category you would like to score")
+        #self.show_scorecard()
+        #choice = self.get_choice()
 
 
 
@@ -280,6 +266,8 @@ class Scorecard:        # Scorecard class - built in scoring methods
         self.score = self.upper_score + self.lower_score + self.bonus
         return self.score
     
+    def fet_scorecard(self):
+        return self.scorecard
     
 class Dice:         # Dice class
     def __init__(self):
@@ -293,7 +281,7 @@ class Dice:         # Dice class
     def get_dice(self):
         return self.dice
 
-    def get_reroll_choice(self,dice):
+    '''def get_reroll_choice(self,dice):
 
         # validate user input for reroll choice
         
@@ -305,28 +293,33 @@ class Dice:         # Dice class
 
         except ValueError or TypeError:
             print("Invalid choice")
-            choice = self.get_reroll_choice(dice)
+            choice = self.get_reroll_choice(dice)'''
     
-        return choice
+     #   return choice
     
     def roll(self):
         # roll each of the dice in self.dice for a random number between 1 and 6
         for index in range(len(self.dice)):
             self.dice[index] = random.randint(1, 6)
-        return print(self.dice)
+        return self.dice
 
 
     
                    
-    def reroll(self):
-        for index in range(len(self.dice)):
+    def reroll(self, rerollchoice):
+        # reroll the dice in self.dice that the user chooses
+
+        for choice in rerollchoice:
+            self.dice[int(choice)-1] = random.randint(1, 6)
+
+        '''for index in range(len(self.dice)):
             
             choice = self.get_reroll_choice(self.dice[index])
             if choice == "y":
                 self.dice[index] = random.randint(1, 6)
             else:
                 pass
-        return print(self.dice)
+        return print(self.dice)'''
     
     #counts the instances of a given number in the dice list
     def count(self, number):
@@ -376,6 +369,3 @@ class GUI:
     
 
 
-if __name__ == "__main__":    # Main function
-    game = Game()
-    game.run()
