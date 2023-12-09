@@ -118,7 +118,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
 
     
 
-    def get_choice(self):
+    '''def get_choice(self):
         try:
             choice = (int(input("Enter your choice: ")))
             
@@ -134,7 +134,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
                 choice = self.get_choice()
             # check later
 
-        return choice
+        return choice'''
     
     def show_scorecard(self):
         print("Scorecard")
@@ -266,7 +266,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
         self.score = self.upper_score + self.lower_score + self.bonus
         return self.score
     
-    def fet_scorecard(self):
+    def get_scorecard(self):
         return self.scorecard
     
 class Dice:         # Dice class

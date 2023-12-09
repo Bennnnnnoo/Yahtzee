@@ -24,6 +24,9 @@ class Terminal:
                 except ValueError:
                     print("Invalid number of players")
                     continue
+                    
+
+                
             
             for player in range(self.game.playernum):
                 self.game.players.append(Player())
@@ -56,17 +59,20 @@ class Terminal:
             
             except ValueError or TypeError:
                 print("Invalid choice")
-                choice = self.get_category_choice()
+                choice = self.get_category_choice(player)
 
             if choice not in range(1, 14):
-                choice = self.get__category_choice()
+                print("Invalid choice- must be between 1 and 13")
+                choice = self.get_category_choice(player)
             #prevent user from choosing same option twice
-        
-            if player.get_scorecard[player.scorecard.keylist[choice-1]] != None:
-                choice = self.get_category_choice()
+
+            
+            if player.get_scorecard().scorecard[player.scorecard.keylist[choice-1]] != None:
+                print("Category already scored")
+                choice = self.get_category_choice(player)
             # check later
 
-                return choice  
+            return choice  
             
         def tround(self):
             print("Round " + str(self.game.roundnum))
@@ -83,7 +89,8 @@ class Terminal:
                 print("Your dice are: " + str(self.game.dice.get_dice()))
             self.game.rerolls = 0
             player.scorecard.show_scorecard()
-            player.scorecard.score_roll(self.game.dice, self.get_category_choice(player))
+            choice = self.get_category_choice(player)
+            player.scorecard.score_roll(self.game.dice, choice)
             player.scorecard.show_scorecard()
 
 
