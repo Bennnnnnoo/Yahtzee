@@ -99,6 +99,7 @@ class Terminal:
             player.scorecard.show_scorecard()
 
 
+
                 
 
                 
@@ -134,12 +135,14 @@ class GUI:
 
     def __init__(self):
         self.game = Game()
+        self.__theme = "DarkGreen1"
+        self.__rules = 'Rules.txt'
    
 
 
 
     def run(self):
-        psg.theme("DarkGreen1")
+        psg.theme(self.__theme)
 
         
 
@@ -172,9 +175,36 @@ class GUI:
                 break
         window.close()
 
+    def rules(self):
+
+        # read rul;es from rules file
+
+        with open(self.__rules, 'r') as f:
+            rules = f.read()
+
+        layout = [[psg.Column([[psg.Text(rules)]], scrollable=True, vertical_scroll_only=True, size=(1100, 500))],
+                 [psg.Button("Back", size = (25, 2))],
+                 ]   
+                    
+                  
+        window = psg.Window("Yahtzee rules", layout, element_justification='c', resizable=True, modal=True)
+
+        while True:
+            event, values = window.read()
+            if event == "Back":
+                break
+                
+            elif event == psg.WIN_CLOSED:
+                break
+        
+        window.close()
 
 
 
+    
+
+
+      
     def newgame(self):
         self.game = Game()
 

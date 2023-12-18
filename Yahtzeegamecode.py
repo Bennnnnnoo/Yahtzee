@@ -2,8 +2,6 @@
 import random, math, PySimpleGUI as sg
 
 
-
-
 class Game:             # Game class
 
 
