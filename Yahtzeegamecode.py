@@ -2,61 +2,6 @@
 import random, math, PySimpleGUI as sg
 
 
-class Game:             # Game class
-
-
-    REROLLS = 2
-    DICE = 5
-    NUM_ROUNDS = 13
-
-    def __init__(self):
-        self.dice = Dice()
-        self.scorecard = Scorecard()
-        self.roundnum = 0
-        self.rerolls = 0        
-        #allow multiple players
-        self.players = []
-        self.winner = None
-        self.takennames = []
-        
-        
-
-    def turn(self,player):
-        self.dice.roll()
-        while self.rerolls < Game.REROLLS:
-            self.dice.reroll()
-            self.rerolls += 1
-        
-
-
-
-    '''def round(self):
-        self.roundnum += 1
-
-        for player in self.players:
-            self.dice.roll()
-            
-            
-            while self.rerolls < Game.REROLLS:
-                self.dice.reroll()
-                self.rerolls += 1
-            
-            player.scorecard.score_roll(self.dice)
-            player.scorecard.show_scorecard()
-            self.rerolls = 0 '''
-
-    def get_winner(self):
-        
-        current_score = 0
-    
-        for player in self.players:
-            score = player.get_scorecard().count_score()
-            if score > current_score:
-                current_score = score
-                self.winner = player
-            
-        return self.winner   
-       # print(f"{self.winner.get_name()} wins with {self.winner.get_score()} points")
 
 class Player:           # Player class
     def __init__(self):
@@ -365,5 +310,68 @@ class GUI:
      #   choice = input("Enter choice: ")
       #  return int(choice)
     
+class Game:             # Game class
+
+
+    REROLLS = 2
+    DICE = 5
+    NUM_ROUNDS = 13
+    import AICLASS as ai
+
+    def __init__(self):
+        
+        self.AIplayers = 0
+        self.dice = Dice()
+        self.scorecard = Scorecard()
+        self.roundnum = 0
+        self.rerolls = 0        
+        #allow multiple players
+        self.players = []
+        self.winner = None
+        self.takennames = []
+        
+        
+
+    def turn(self,player):
+
+        if player is isinstance(player, self.Ai_player):
+            ai.Ai_player.play()
+        else:
+
+            self.dice.roll()
+            while self.rerolls < Game.REROLLS:
+                self.dice.reroll()
+                self.rerolls += 1
+        
+
+
+
+    '''def round(self):
+        self.roundnum += 1
+
+        for player in self.players:
+            self.dice.roll()
+            
+            
+            while self.rerolls < Game.REROLLS:
+                self.dice.reroll()
+                self.rerolls += 1
+            
+            player.scorecard.score_roll(self.dice)
+            player.scorecard.show_scorecard()
+            self.rerolls = 0 '''
+
+    def get_winner(self):
+        
+        current_score = 0
+    
+        for player in self.players:
+            score = player.get_scorecard().count_score()
+            if score > current_score:
+                current_score = score
+                self.winner = player
+            
+        return self.winner   
+       # print(f"{self.winner.get_name()} wins with {self.winner.get_score()} points")
 
 

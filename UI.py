@@ -1,5 +1,5 @@
 from Yahtzeegamecode import Game, Player, Scorecard, Dice
-import random, math, PySimpleGUI as psg, time
+import random, math, PySimpleGUI as psg, time, os, sys , re
 
 
 
@@ -19,7 +19,7 @@ class Terminal:
 
             while True:
                 try:
-                    self.game.playernum = int(input("Enter the number of players: "))
+                    self.playernum = int(input("Enter the number of players: "))
                     break
                 except ValueError:
                     print("Invalid number of players")
@@ -28,7 +28,7 @@ class Terminal:
 
                 
             
-            for player in range(self.game.playernum):
+            for player in range(self.playernum):
                 self.game.players.append(Player())
 
             for player in self.game.players:
@@ -133,13 +133,37 @@ class Terminal:
 
 class GUI:
 
+    #image initialisation
+    
+    #reads dice images from file and stores them in a list
+
+    dice_images = {
+        1:'D1.png',
+        2:'D2.png',
+        3:'D3.png',
+        4:'D4.png',
+        5:'D5.png',
+        6:'D6.png'
+
+
+    }
+
+
+        
+    
+ 
+
+   
+        
+
     def __init__(self):
         self.game = Game()
         self.__theme = "DarkGreen1"
         self.__rules = 'Rules.txt'
+        self.dice_images = GUI.dice_images
    
 
-
+    
 
     def run(self):
         psg.theme(self.__theme)
@@ -156,6 +180,8 @@ class GUI:
                   [psg.Button("Leaderboard", size = (50, 5))], 
                   [psg.T("")],
                   [psg.Button("Rules", size = (50, 5))],
+                  #[psg.Button('', image_filename='D1.png', image_size=(100, 100), image_subsample=2, border_width=0, button_color=(psg.theme_background_color()), key='dice')],
+
                   ]
                   
         window = psg.Window("Yahtzee", layout, size=(700, 700), element_justification='c')
@@ -177,7 +203,7 @@ class GUI:
 
     def rules(self):
 
-        # read rul;es from rules file
+        # read rules from rules file
 
         with open(self.__rules, 'r') as f:
             rules = f.read()
@@ -207,9 +233,13 @@ class GUI:
       
     def newgame(self):
         self.game = Game()
-
-
-        self.playernum = int(psg.popup_get_text("Enter the number of players: "))
+        while True:
+            try:
+                self.playernum = int(psg.popup_get_text("Enter the number of players: ")) # add validation
+                break
+            except ValueError:
+                psg.popup("Invalid number of players")
+                continue
         for self.player in range(self.playernum):
             self.game.players.append(Player())
         for player in self.game.players:
@@ -248,41 +278,80 @@ class GUI:
         # variable initialisaion
         self.game.rerolls = 0
         self.game.dice.roll()
-        
+
         # layout
         layout = [
             [psg.Text("Round " + str(self.game.roundnum))],
             [psg.Text(str(player.name) + "'s turn")],
             [playerscoretable],
-            [psg.Text('Your dice are: ' + str(self.game.dice.get_dice()), key = 'dice')],
-            [psg.Text('Enter the dice you want to reroll: ')],[psg.Input(key='reroll')],
+            [psg.Text('Your dice are: ' + str(self.game.dice.get_dice()), key='dice')]
+        ] + [
+            [psg.Button('', image_filename=self.dice_images[dice], image_size=(100, 100), image_subsample=2, border_width=0, button_color=(psg.theme_background_color()), key='dice' + str(dice.index)) for dice in self.game.dice.get_dice()]
+            
+        ] + [
+            [psg.Text('Enter the dice you want to reroll: ')],
+            [psg.Input(key='reroll')],
             [psg.Button("Reroll")],
             [psg.Input(key='score_category')],
-            [psg.Button("Score")],
+            [psg.Button("Score")]
+        ]
+        
 
+        
 
-
-
-       ]
+       
         
 
 
 
 
 
-        window = psg.Window("Yahtzee", layout, size=(700, 500), element_justification='c')
+        window = psg.Window("Yahtzee", layout, size=(700, 600), element_justification='c')
         while True:
             event,values = window.read()
-            if event == "Reroll":
+            rerolllist = []
+            if event == "dice0":
+                rerolllist.append(0)
+            elif event == "dice1":
+                rerolllist.append(1)
+            elif event == "dice2":
+                rerolllist.append(2)
+            elif event == "dice3":
+                rerolllist.append(3)
+            elif event == "dice4":
+                rerolllist.append(4)
+            elif event == "dice5":
+                rerolllist.append(5)
+
+            
+
+            
+            
+
+            elif event == "Reroll":
                 
                 if self.game.rerolls < self.game.REROLLS:
                     self.game.rerolls += 1
-                    self.game.dice.reroll(values['reroll'].split(','))
+                    #self.game.dice.reroll(values['reroll'].split(','))
+                    self.game.dice.reroll(rerolllist)
+                    for dice in rerolllist:
+                        window['dice' + str(dice)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice]], image_size=(100, 100), image_subsample=2, border_width=0, button_color=(psg.theme_background_color()))
+                    rerolllist.clear()
                     window['reroll'].update('')
-                    window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
+                    #window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
+                    
                 else:
                     psg.popup("You have used all your rerolls!")
             elif event == "Score":
+
+                if player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
+                    psg.popup("Category already scored")
+                    break
+                elif int(values['score_category']) not in range(1, 14):
+                    psg.popup("Invalid choice- must be between 1 and 13")
+                    break
+                    
+
                 player.scorecard.score_roll(self.game.dice, int(values['score_category']))
                 window['Score'].update(visible=False)
                 scorecardlist.clear()
