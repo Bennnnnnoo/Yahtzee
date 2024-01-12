@@ -286,7 +286,7 @@ class GUI:
             [playerscoretable],
             [psg.Text('Your dice are: ' + str(self.game.dice.get_dice()), key='dice')]
         ] + [
-            [psg.Button('', image_filename=self.dice_images[dice], image_size=(100, 100), image_subsample=2, border_width=0, button_color=(psg.theme_background_color()), key='dice' + str(dice.index)) for dice in self.game.dice.get_dice()]
+            [psg.Button('', image_filename=self.dice_images[dice], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), key='dice' + str(self.game.dice.get_dice().index(dice))) for dice in self.game.dice.get_dice()]
             
         ] + [
             [psg.Text('Enter the dice you want to reroll: ')],
@@ -307,20 +307,28 @@ class GUI:
 
 
         window = psg.Window("Yahtzee", layout, size=(700, 600), element_justification='c')
+        rerolllist = []
+
         while True:
             event,values = window.read()
-            rerolllist = []
+            
             if event == "dice0":
                 rerolllist.append(0)
-            elif event == "dice1":
+
+            
+            if event == "dice1":
                 rerolllist.append(1)
-            elif event == "dice2":
+            
+            if event == "dice2":
                 rerolllist.append(2)
-            elif event == "dice3":
+            
+            if event == "dice3":
                 rerolllist.append(3)
-            elif event == "dice4":
+            
+            if event == "dice4":
                 rerolllist.append(4)
-            elif event == "dice5":
+            
+            if event == "dice5":
                 rerolllist.append(5)
 
             
@@ -330,12 +338,13 @@ class GUI:
 
             elif event == "Reroll":
                 
+                psg.popup(rerolllist)
                 if self.game.rerolls < self.game.REROLLS:
                     self.game.rerolls += 1
                     #self.game.dice.reroll(values['reroll'].split(','))
                     self.game.dice.reroll(rerolllist)
                     for dice in rerolllist:
-                        window['dice' + str(dice)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice]], image_size=(100, 100), image_subsample=2, border_width=0, button_color=(psg.theme_background_color()))
+                        window['dice' + str(dice)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice]], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()))
                     rerolllist.clear()
                     window['reroll'].update('')
                     #window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
@@ -367,23 +376,6 @@ class GUI:
             
         window.close()
 
-
-
-    ''' rolls = 0
-        psg.popup(str(player.name) + "'s turn")
-        self.game.dice = Dice()
-        self.game.dice.roll()
-        
-        psg.popup("Your dice are: " + str(self.game.dice.get_dice()))
-        self.rolls = 0
-        while rolls < 2:
-            rolls += 1
-            rerolls = psg.popup_get_text("Enter the dice you want to keep: ")
-            self.dice.roll(rerolls)
-            psg.popup("Your dice are: " + str(self.game.dice.get_dice()))
-        self.category = psg.popup_get_text("Enter the category you want to score in: ")
-        player.scorecard.score_roll(self.game.dice, int(self.catgory))
-        self.roundnum += 1 '''
 
 
             
