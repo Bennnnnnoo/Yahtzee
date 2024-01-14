@@ -212,6 +212,9 @@ class Scorecard:        # Scorecard class - built in scoring methods
     def get_scorecard(self):
         return self.scorecard
     
+    def get_score(self):
+        return self.score
+    
 class Dice:         # Dice class
     def __init__(self):
     #    self.dice = [5,2,1,4,3]     #test case
@@ -297,19 +300,7 @@ class AiPlayer(Player):
         
     
 
-class GUI:
 
-    pass
-    
-# User interface for yahtzee
-#class Ui:
-    #def __init__(self):
-     #   pass
-
-    #def get_choice(self):
-     #   choice = input("Enter choice: ")
-      #  return int(choice)
-    
 class Game:             # Game class
 
 
@@ -367,7 +358,7 @@ class Game:             # Game class
     
         for player in self.players:
             score = player.get_scorecard().count_score()
-            if score > current_score:
+            if score >= current_score:
                 current_score = score
                 self.winner = player
             

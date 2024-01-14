@@ -1,5 +1,5 @@
 from Yahtzeegamecode import Game, Player, Scorecard, Dice
-import random, math, PySimpleGUI as psg, time, os, sys , re
+import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3
 
 
 
@@ -110,32 +110,13 @@ class Terminal:
 
     
     
-        '''def turngui(self):
-            print("Player " + str(self.player) + "'s turn")
-            self.dice = Dice()
-            self.dice.roll()
-            self.dicegui = self.dice.get_dice()
-            print("Your dice are: " + str(self.dicegui))
-            self.rolls = 0
-            while self.rolls < 2:
-                self.rolls += 1
-                self.keep = input("Enter the dice you want to keep: ")
-                self.dice.roll(self.keep)
-                self.dicegui = self.dice.get_dice()
-                print("Your dice are: " + str(self.dicegui))
-            self.category = input("Enter the category you want to score in: ")
-            self.player.scorecard.score(self.category, self.dice)
-            self.game.roundnum += 1
-    
-    
-                
-            print("Game Over!")'''
+        
 
 class GUI:
 
     #image initialisation
     
-    #reads dice images from file and stores them in a list
+   
 
     dice_images = {
         1:'D1.png',
@@ -161,6 +142,43 @@ class GUI:
         self.__theme = "DarkGreen1"
         self.__rules = 'Rules.txt'
         self.dice_images = GUI.dice_images
+
+    def addtoleaderboard(self, player):
+        # 
+        conn = sqlite3.connect('leaderboard.db')
+        c = conn.cursor()
+        c.execute("CREATE TABLE IF NOT EXISTS leaderboard (id INTEGER PRIMARY KEY AUTOINCREMENT, player_name TEXT, score INTEGER)")
+
+        c.execute("INSERT INTO leaderboard VALUES (?, ?)", (player.name, player.scorecard.get_score()))
+        conn.commit()
+        conn.close()
+
+    def leaderboard(self):
+        # check if leaderboard.db is in directory
+        if not os.path.isfile('leaderboard.db'):
+            psg.popup("No leaderboard found")
+            return
+        
+        # connect to leaderboard.db and get data
+        conn = sqlite3.connect('leaderboard.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM leaderboard ORDER BY score DESC")
+        leaderboard = c.fetchall()
+        conn.close()
+
+        layout = [[psg.Text("Leaderboard")],
+                  [psg.T("")],
+                  [psg.Table(values = leaderboard, headings = ["Player", "Score"], num_rows=(len(leaderboard)), auto_size_columns=True, justification='c')],
+                  [psg.Button("Back", size = (25, 2))]
+                  ]
+        window = psg.Window("Leaderboard", layout, element_justification='c')
+        while True:
+            event, values = window.read()
+            if event == "Back":
+                break
+            elif event == psg.WIN_CLOSED:
+                break
+        window.close()
    
 
     
@@ -245,14 +263,50 @@ class GUI:
         for player in self.game.players:
             player.name = psg.popup_get_text("Enter your name: ")
 
-        while self.game.roundnum < 13*len(self.game.players):
+        while self.game.roundnum < 1*len(self.game.players):
             self.roundgui()
 
         psg.popup("Game Over!")
 
-        
+        #winner page
 
-        self.run()
+        winner = self.game.get_winner()
+
+        # player score table dict
+        playerlist = [player.get_name() for player in self.game.players]
+        scorelist = [player.scorecard.get_score() for player in self.game.players]
+        scorecarddict = dict(zip(playerlist, scorelist))
+
+        tablelist = []
+        for key in scorecarddict:
+            if scorecarddict[key] == None:
+                scorecarddict[key] = 0
+            tablelist.append([key, scorecarddict[key]])
+
+            
+        scoretable = psg.Table(values = tablelist, headings = ["Player", "Score"], num_rows=(len(self.game.players)), auto_size_columns=True, justification='c')
+
+
+        layout = [[psg.Text("Game Over!")],
+                    [psg.Text(winner.name + " is the winner with a score of " + str(winner.scorecard.get_score()))],
+                    [scoretable],
+                    [psg.Button("Back to menu", size = (25, 2))],
+                    [psg.Button("Play again", size = (25, 2))],
+                    ]
+
+        window = psg.Window("Yahtzee", layout, element_justification='c')
+        while True:
+            event, values = window.read()
+            if event == "Back to menu":
+                self.run()
+                break
+            elif event == "Play again":
+                self.newgame()
+                break
+            elif event == psg.WIN_CLOSED:
+                break
+        
+        window.close()
         
 
 
@@ -313,23 +367,23 @@ class GUI:
             event,values = window.read()
             
             if event == "dice0":
-                rerolllist.append(0)
+                rerolllist.append(1)
 
             
             if event == "dice1":
-                rerolllist.append(1)
-            
-            if event == "dice2":
                 rerolllist.append(2)
             
-            if event == "dice3":
+            if event == "dice2":
                 rerolllist.append(3)
             
-            if event == "dice4":
+            if event == "dice3":
                 rerolllist.append(4)
             
-            if event == "dice5":
-                rerolllist.append(5)
+            if event == "dice4":
+                rerolllist.append(5) # check this
+            
+        #    if event == "dice5":
+         #       rerolllist.append(6)
 
             
 
@@ -344,7 +398,7 @@ class GUI:
                     #self.game.dice.reroll(values['reroll'].split(','))
                     self.game.dice.reroll(rerolllist)
                     for dice in rerolllist:
-                        window['dice' + str(dice)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice]], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()))
+                        window['dice' + str(dice-1)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice-1]], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()))
                     rerolllist.clear()
                     window['reroll'].update('')
                     #window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
@@ -352,13 +406,17 @@ class GUI:
                 else:
                     psg.popup("You have used all your rerolls!")
             elif event == "Score":
+                try:
 
-                if player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
-                    psg.popup("Category already scored")
-                    break
-                elif int(values['score_category']) not in range(1, 14):
-                    psg.popup("Invalid choice- must be between 1 and 13")
-                    break
+                    if player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
+                        psg.popup("Category already scored")
+                        break
+                    elif int(values['score_category']) not in range(1, 14):
+                        psg.popup("Invalid choice- must be between 1 and 13")
+                        break
+                except ValueError or TypeError:
+                    psg.popup("Invalid choice")
+                    
                     
 
                 player.scorecard.score_roll(self.game.dice, int(values['score_category']))
