@@ -147,9 +147,15 @@ class GUI:
         # 
         conn = sqlite3.connect('leaderboard.db')
         c = conn.cursor()
-        c.execute("CREATE TABLE IF NOT EXISTS leaderboard (id INTEGER PRIMARY KEY AUTOINCREMENT, player_name TEXT, score INTEGER)")
+        c.execute('''
+                  CREATE TABLE IF NOT EXISTS leaderboard (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    player_name TEXT,
+                    score INTEGER
+                    )
+                    ''')
 
-        c.execute("INSERT INTO leaderboard VALUES (?, ?)", (player.name, player.scorecard.get_score()))
+        c.execute("INSERT INTO leaderboard (player_name, score) VALUES (?, ?)", (player.name, player.scorecard.get_score()))
         conn.commit()
         conn.close()
 
@@ -162,7 +168,7 @@ class GUI:
         # connect to leaderboard.db and get data
         conn = sqlite3.connect('leaderboard.db')
         c = conn.cursor()
-        c.execute("SELECT * FROM leaderboard ORDER BY score DESC")
+        c.execute("SELECT player_name, score FROM leaderboard ORDER BY score DESC")
         leaderboard = c.fetchall()
         conn.close()
 
@@ -263,7 +269,7 @@ class GUI:
         for player in self.game.players:
             player.name = psg.popup_get_text("Enter your name: ")
 
-        while self.game.roundnum < 1*len(self.game.players):
+        while self.game.roundnum < 1:       #change to 13 for actual games
             self.roundgui()
 
         psg.popup("Game Over!")
@@ -295,6 +301,10 @@ class GUI:
                     ]
 
         window = psg.Window("Yahtzee", layout, element_justification='c')
+
+        for player in self.game.players:
+            self.addtoleaderboard(player)
+        
         while True:
             event, values = window.read()
             if event == "Back to menu":
@@ -340,7 +350,7 @@ class GUI:
             [playerscoretable],
             [psg.Text('Your dice are: ' + str(self.game.dice.get_dice()), key='dice')]
         ] + [
-            [psg.Button('', image_filename=self.dice_images[dice], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), key='dice' + str(self.game.dice.get_dice().index(dice))) for dice in self.game.dice.get_dice()]
+            [psg.Button('', image_filename=self.dice_images[dice], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), key='dice' + str(index)) for index,dice in enumerate(self.game.dice.get_dice())]
             
         ] + [
             [psg.Text('Enter the dice you want to reroll: ')],
@@ -368,19 +378,24 @@ class GUI:
             
             if event == "dice0":
                 rerolllist.append(1)
-
+                #hide dice after click
+                window['dice0'].update(visible=False)
             
             if event == "dice1":
                 rerolllist.append(2)
+                window['dice1'].update(visible=False)
             
             if event == "dice2":
                 rerolllist.append(3)
-            
+                window['dice2'].update(visible=False)
+
             if event == "dice3":
                 rerolllist.append(4)
+                window['dice3'].update(visible=False)
             
             if event == "dice4":
                 rerolllist.append(5) # check this
+                window['dice4'].update(visible=False)
             
         #    if event == "dice5":
          #       rerolllist.append(6)
@@ -398,7 +413,7 @@ class GUI:
                     #self.game.dice.reroll(values['reroll'].split(','))
                     self.game.dice.reroll(rerolllist)
                     for dice in rerolllist:
-                        window['dice' + str(dice-1)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice-1]], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()))
+                        window['dice' + str(dice-1)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice-1]], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), visible=True)
                     rerolllist.clear()
                     window['reroll'].update('')
                     #window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
@@ -426,7 +441,7 @@ class GUI:
                     scorecardlist.append([key, player.scorecard.scorecard[key]])
                 
                 playerscoretable.update(scorecardlist)
-                time.sleep(1)
+                time.sleep(2) # let user see scorecard
                 
                 break
             elif event == psg.WIN_CLOSED:

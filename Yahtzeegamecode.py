@@ -217,7 +217,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
     
 class Dice:         # Dice class
     def __init__(self):
-    #    self.dice = [5,2,1,4,3]     #test case
+        #self.dice = [1,3,1,4,2]     #test case
         self.dice = [0 for i in range(Game.DICE)]
         
 
@@ -227,21 +227,7 @@ class Dice:         # Dice class
     def get_dice(self):
         return self.dice
 
-    '''def get_reroll_choice(self,dice):
-
-        # validate user input for reroll choice
-        
-        try:
-            choice = input(f"Would you like to reroll {dice} : (y/n)")
-            if choice not in ["y", "n"]:
-                print("Invalid choice")
-                choice = self.get_reroll_choice(dice)
-
-        except ValueError or TypeError:
-            print("Invalid choice")
-            choice = self.get_reroll_choice(dice)'''
-    
-     #   return choice
+   
     
     def roll(self):
         # roll each of the dice in self.dice for a random number between 1 and 6
@@ -258,36 +244,12 @@ class Dice:         # Dice class
         for choice in rerollchoice:
             self.dice[int(choice)-1] = random.randint(1, 6)
 
-        '''for index in range(len(self.dice)):
-            
-            choice = self.get_reroll_choice(self.dice[index])
-            if choice == "y":
-                self.dice[index] = random.randint(1, 6)
-            else:
-                pass
-        return print(self.dice)'''
+       
     
     #counts the instances of a given number in the dice list
     def count(self, number):
         return self.dice.count(number)
     
-
-#ai player for yahtzee
-class AiPlayer(Player):
-    def __init__(self):
-        self.name = "Computer"
-        self.initial_roll = []
-        
-    def possibleoptions(x,y):
-        C = y.math.factorial(y)/(x.math.factorial(y-x)*y.math.factorial(x))
-        return C
-    
-    
-
-
-    
-
-
 
 
     
