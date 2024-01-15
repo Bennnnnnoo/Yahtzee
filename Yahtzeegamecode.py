@@ -287,8 +287,9 @@ class Game:             # Game class
 
     def turn(self,player):
 
-        if player is isinstance(player, self.Ai_player):
-            ai.Ai_player.play()
+        if player is isinstance(player, EasyAI):
+            self.dice.roll()
+            player.play(self.dice)
         else:
 
             self.dice.roll()
@@ -327,4 +328,113 @@ class Game:             # Game class
         return self.winner   
        # print(f"{self.winner.get_name()} wins with {self.winner.get_score()} points")
 
+
+class EasyAI(Player):
+
+    def __init__(self):
+        super().__init__()
+        self.name = "Easy AI"
+        self.scorecard = Scorecard()
+
+    def play(self, dice):
+        self.scorecard.score_roll(dice, self.choosecategory(dice))
+
+
+    def merge_sort(self, alist):
+        if len(alist) <= 1:
+            return alist
+        else:
+            left = self.merge_sort(alist[:len(alist)//2])
+            right = self.merge_sort(alist[len(alist)//2:])
+            return self.merge(left, right)
+        
+    def merge(self, left, right):
+        result = []
+        while len(left) > 0 and len(right) > 0:
+            if left[0] <= right[0]:
+                result.append(left.pop(0))
+            else:
+                result.append(right.pop(0))
+        if len(left) > 0:
+            result.extend(left)
+        else:
+            result.extend(right)
+        return result
+
+# count how many of each dice there are
+
+    def FindDiceState(self,dice_list):
+        # Initialize a dictionary to store the count of each dice value
+        dice_count = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+
+        # Iterate through the dice_list and update the counts
+        for value in dice_list:
+            # Check if the value is a valid dice value
+            if value in dice_count:
+                # Increment the count for the respective dice value
+                dice_count[value] += 1
+            else:
+                print(f"Illegal dice value: {value}")
+
+        return dice_count
+        
+    
+
+    def choosecategory(self, dice):
+        #dicestates = self.FindDiceState(dice)
+        
+        # make dictionary of scorable categories
+
+        scoreablecategories = self.scorecard.get_scorecard()
+        for key, value in scoreablecategories.items():
+            if value != None:
+                del scoreablecategories[key]
+
+        predicted_scores = {}
+
+        for key, value in scoreablecategories.items():
+            if key == "1.ones":
+                predicted_scores[key] = self.scorecard.score_ones(dice)
+            elif key == "2.twos":
+                predicted_scores[key] = self.scorecard.score_twos(dice)
+            elif key == "3.threes":
+                predicted_scores[key] = self.scorecard.score_threes(dice)
+            elif key == "4.fours":
+                predicted_scores[key] = self.scorecard.score_fours(dice)
+            elif key == "5.fives":
+                predicted_scores[key] = self.scorecard.score_fives(dice)
+            elif key == "6.sixes":
+                predicted_scores[key] = self.scorecard.score_sixes(dice)
+            elif key == "7.three of a kind":
+                predicted_scores[key] = self.scorecard.score_three_of_a_kind(dice)
+            elif key == "8.four of a kind":
+                predicted_scores[key] = self.scorecard.score_four_of_a_kind(dice)
+            elif key == "9.full house":
+                predicted_scores[key] = self.scorecard.score_full_house(dice)
+            elif key == "10.small straight":
+                predicted_scores[key] = self.scorecard.score_small_straight(dice)
+            elif key == "11.large straight":
+                predicted_scores[key] = self.scorecard.score_large_straight(dice)
+            elif key == "12.yahtzee":
+                predicted_scores[key] = self.scorecard.score_yahtzee(dice)
+            elif key == "13.chance":
+                predicted_scores[key] = self.scorecard.score_chance(dice)
+            else:
+                raise NotImplementedError
+            
+        # sort the dictionary by value
+        
+        sorted_scores = dict(self.merge_sort(predicted_scores.items(), key=lambda x: x[1]))
+        chosen_category =sorted_scores.popitem()
+
+        return chosen_category[0]
+        
+
+
+
+
+
+
+
+        
 
