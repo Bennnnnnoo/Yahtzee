@@ -1,7 +1,8 @@
-from Yahtzeegamecode import Game, Player, Scorecard, Dice
-import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3
+from Yahtzeegamecode import Game, Player, EasyAI, Scorecard, Dice
+import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3, statistics
 
 
+# Terminal UI
 
 class Terminal:
     
@@ -13,13 +14,16 @@ class Terminal:
             self.game = Game()
 
             
+
+        # run game
             
         def run(self):
             
-
+            
             while True:
                 try:
                     self.playernum = int(input("Enter the number of players: "))
+                    self.AIplayers = int(input("Enter the number of AI players: "))
                     break
                 except ValueError:
                     print("Invalid number of players")
@@ -30,6 +34,10 @@ class Terminal:
             
             for player in range(self.playernum):
                 self.game.players.append(Player())
+
+            for player in range(self.AIplayers):
+                self.game.players.append(EasyAI())
+
 
             for player in self.game.players:
                 player.name = input("Enter your name: ")
@@ -45,13 +53,18 @@ class Terminal:
 
             
 
-            
+        # get user input for rerolls
             
         def get_reroll_choice(self):
-            reroll_list = input("Enter the dice indexes you want to reroll: ").split(',')
-            reroll_list = [int(i) for i in reroll_list]
+            try:
+                reroll_list = int(input("Enter the dice indexes you want to reroll: ")).split(',')
+            except ValueError or TypeError:
+                print("Invalid choice")
+                reroll_list = self.get_reroll_choice()
+            
             return reroll_list
             
+        # get user input for category choice
 
         def get_category_choice(self,player):
             try:
@@ -64,24 +77,31 @@ class Terminal:
             if choice not in range(1, 14):
                 print("Invalid choice- must be between 1 and 13")
                 choice = self.get_category_choice(player)
-            #prevent user from choosing same option twice
+            
 
             
             if player.get_scorecard().scorecard[player.scorecard.keylist[choice-1]] != None:
                 print("Category already scored")
                 choice = self.get_category_choice(player)
-            # check later
+            
 
             return choice  
-            
+
+        # play round
+           
         def tround(self):
 
             self.game.roundnum += 1
 
             print("Round " + str(self.game.roundnum))
             for player in self.game.players:
-                self.turn(player)
-                
+                if isinstance(player, EasyAI):
+                    self.ai_turn(player)
+                else:
+                    self.turn(player)
+
+        # play user turn
+                        
         def turn(self,player):
 
             
@@ -98,26 +118,27 @@ class Terminal:
             player.scorecard.score_roll(self.game.dice, choice)
             player.scorecard.show_scorecard()
 
-
-
-                
-
-                
-
-
+        # play AI turn
             
+        def easy_ai_turn(self,player):
+                
+                print(player.name + "'s turn")
+                self.game.dice.roll()
+                print("Your dice are: " + str(self.game.dice.get_dice()))
+                self.game.rerolls = 0
+                player.scorecard.show_scorecard()
+                player.play()
+                player.scorecard.show_scorecard()
 
 
-    
-    
-        
 
+
+# GUI 
+                
 class GUI:
 
-    #image initialisation
+    #dice image initialisation
     
-   
-
     dice_images = {
         1:'D1.png',
         2:'D2.png',
@@ -125,24 +146,85 @@ class GUI:
         4:'D4.png',
         5:'D5.png',
         6:'D6.png'
-
-
     }
 
-
-        
-    
- 
-
-   
-        
-
+    #GUI initialisation
     def __init__(self):
         self.game = Game()
         self.__theme = "DarkGreen1"
         self.__rules = 'Rules.txt'
         self.dice_images = GUI.dice_images
 
+    #run game in GUI
+
+    def run(self):
+        psg.theme(self.__theme)
+
+        layout = [[psg.Text("Welcome to Yahtzee!")],
+                  [psg.T("")],
+                  [psg.Button("Start new Game", size = (50, 5) )],
+                  [psg.T("")],
+                  [psg.Button("Leaderboard", size = (50, 5))], 
+                  [psg.T("")],
+                  [psg.Button("Rules", size = (50, 5))],
+
+                  ]
+                  
+        window = psg.Window("Yahtzee", layout, size=(700, 700), element_justification='c')
+        
+        while True:
+            event, values = window.read()
+            if event == "Start new Game":
+                window.close()
+                self.newgame()
+                
+            elif event == "Load Game":
+                self.loadgame()
+            
+            elif event == "Leaderboard":
+                self.leaderboard()
+            
+            elif event == "Rules":
+                self.rules()
+            
+            elif event == psg.WIN_CLOSED:
+                break
+        
+        window.close()
+
+    # load leaderoard from database, display in table
+        
+    def leaderboard(self):
+        
+        if not os.path.isfile('leaderboard.db'):
+            psg.popup("No leaderboard found")
+            return
+        
+        
+        conn = sqlite3.connect('leaderboard.db')
+        c = conn.cursor()
+        c.execute("SELECT player_name, score FROM leaderboard ORDER BY score DESC")
+        leaderboard = c.fetchall()
+        conn.close()
+
+        layout = [[psg.Text("Leaderboard")],
+                  [psg.T("")],
+                  [psg.Table(values = leaderboard, headings = ["Player", "Score"], num_rows=(len(leaderboard)), auto_size_columns=True, justification='c')],
+                  [psg.Button("Back", size = (25, 2))]
+                  ]
+        window = psg.Window("Leaderboard", layout, element_justification='c')
+        
+        while True:
+            event, values = window.read()
+            if event == "Back":
+                break
+            
+            elif event == psg.WIN_CLOSED:
+                break
+        
+        window.close()
+
+    # add player to leaderboard database
     def addtoleaderboard(self, player):
         # 
         conn = sqlite3.connect('leaderboard.db')
@@ -159,75 +241,9 @@ class GUI:
         conn.commit()
         conn.close()
 
-    def leaderboard(self):
-        # check if leaderboard.db is in directory
-        if not os.path.isfile('leaderboard.db'):
-            psg.popup("No leaderboard found")
-            return
-        
-        # connect to leaderboard.db and get data
-        conn = sqlite3.connect('leaderboard.db')
-        c = conn.cursor()
-        c.execute("SELECT player_name, score FROM leaderboard ORDER BY score DESC")
-        leaderboard = c.fetchall()
-        conn.close()
 
-        layout = [[psg.Text("Leaderboard")],
-                  [psg.T("")],
-                  [psg.Table(values = leaderboard, headings = ["Player", "Score"], num_rows=(len(leaderboard)), auto_size_columns=True, justification='c')],
-                  [psg.Button("Back", size = (25, 2))]
-                  ]
-        window = psg.Window("Leaderboard", layout, element_justification='c')
-        while True:
-            event, values = window.read()
-            if event == "Back":
-                break
-            elif event == psg.WIN_CLOSED:
-                break
-        window.close()
-   
-
-    
-
-    def run(self):
-        psg.theme(self.__theme)
-
-        
-
-
-        layout = [[psg.Text("Welcome to Yahtzee!")],
-                  [psg.T("")],
-                  [psg.Button("Start new Game", size = (50, 5) )],
-                  [psg.T("")],
-                  [psg.Button("Load Game",size = (50, 5) )],
-                  [psg.T("")],
-                  [psg.Button("Leaderboard", size = (50, 5))], 
-                  [psg.T("")],
-                  [psg.Button("Rules", size = (50, 5))],
-                  #[psg.Button('', image_filename='D1.png', image_size=(100, 100), image_subsample=2, border_width=0, button_color=(psg.theme_background_color()), key='dice')],
-
-                  ]
-                  
-        window = psg.Window("Yahtzee", layout, size=(700, 700), element_justification='c')
-        while True:
-            event, values = window.read()
-            if event == "Start new Game":
-                window.close()
-                self.newgame()
-                
-            elif event == "Load Game":
-                self.loadgame()
-            elif event == "Leaderboard":
-                self.leaderboard()
-            elif event == "Rules":
-                self.rules()
-            elif event == psg.WIN_CLOSED:
-                break
-        window.close()
-
+    # rules page
     def rules(self):
-
-        # read rules from rules file
 
         with open(self.__rules, 'r') as f:
             rules = f.read()
@@ -249,41 +265,44 @@ class GUI:
         
         window.close()
 
-
-
     
-
-
-      
+    # starts a new game      
     def newgame(self):
         self.game = Game()
         while True:
             try:
-                self.playernum = int(psg.popup_get_text("Enter the number of players: ")) # add validation
+                self.playernum = int(psg.popup_get_text("Enter the number of players: "))
+                self.AIplayers = int(psg.popup_get_text("Enter the number of AI players: "))
                 break
-            except ValueError:
+            except TypeError or ValueError:
                 psg.popup("Invalid number of players")
                 continue
+
         for self.player in range(self.playernum):
             self.game.players.append(Player())
+
         for player in self.game.players:
             player.name = psg.popup_get_text("Enter your name: ")
 
-        while self.game.roundnum < 1:       #change to 13 for actual games
+        for self.player in range(self.AIplayers):
+            # add hard AI
+            self.game.players.append(EasyAI())
+
+        while self.game.roundnum < self.game.NUM_ROUNDS:       
             self.roundgui()
+
+        # end sequence
 
         psg.popup("Game Over!")
 
-        #winner page
-
         winner = self.game.get_winner()
-
-        # player score table dict
+  
         playerlist = [player.get_name() for player in self.game.players]
         scorelist = [player.scorecard.get_score() for player in self.game.players]
         scorecarddict = dict(zip(playerlist, scorelist))
 
         tablelist = []
+
         for key in scorecarddict:
             if scorecarddict[key] == None:
                 scorecarddict[key] = 0
@@ -296,6 +315,7 @@ class GUI:
         layout = [[psg.Text("Game Over!")],
                     [psg.Text(winner.name + " is the winner with a score of " + str(winner.scorecard.get_score()))],
                     [scoretable],
+                    [psg.Text("The average score this game was " + str(statistics.mean(scorelist)))],
                     [psg.Button("Back to menu", size = (25, 2))],
                     [psg.Button("Play again", size = (25, 2))],
                     ]
@@ -320,30 +340,31 @@ class GUI:
         
 
 
-
+    # round sequence
     def roundgui(self):
         self.game.roundnum += 1
         psg.popup("Round " + str(self.game.roundnum))
         for player in self.game.players:
-            self.turngui(player)
+            if isinstance(player, EasyAI):
+                self.ai_turn_gui(player)
+            else:
+                self.turngui(player)
 
-
+    # turn sequence
     def turngui(self, player):
-
-        # makes scorecard dict to 2d array for easy table reading
 
         scorecardlist = []
         for key in player.scorecard.keylist:
             scorecardlist.append([key, player.scorecard.scorecard[key]])
 
-        # table initialisation
+      
         playerscoretable = psg.Table(values = scorecardlist, headings = ["Category", "Score"], num_rows=(14), auto_size_columns=True, justification='c')
         
-        # variable initialisaion
+      
         self.game.rerolls = 0
         self.game.dice.roll()
 
-        # layout
+        
         layout = [
             [psg.Text("Round " + str(self.game.roundnum))],
             [psg.Text(str(player.name) + "'s turn")],
@@ -353,22 +374,13 @@ class GUI:
             [psg.Button('', image_filename=self.dice_images[dice], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), key='dice' + str(index)) for index,dice in enumerate(self.game.dice.get_dice())]
             
         ] + [
-            [psg.Text('Enter the dice you want to reroll: ')],
-            [psg.Input(key='reroll')],
+            [psg.Text('click dice to reroll, then click reroll button')],
+            
             [psg.Button("Reroll")],
             [psg.Input(key='score_category')],
             [psg.Button("Score")]
         ]
         
-
-        
-
-       
-        
-
-
-
-
 
         window = psg.Window("Yahtzee", layout, size=(700, 600), element_justification='c')
         rerolllist = []
@@ -397,29 +409,20 @@ class GUI:
                 rerolllist.append(5) # check this
                 window['dice4'].update(visible=False)
             
-        #    if event == "dice5":
-         #       rerolllist.append(6)
-
             
 
-            
-            
-
-            elif event == "Reroll":
-                
-                psg.popup(rerolllist)
+            elif event == "Reroll":              
                 if self.game.rerolls < self.game.REROLLS:
                     self.game.rerolls += 1
-                    #self.game.dice.reroll(values['reroll'].split(','))
                     self.game.dice.reroll(rerolllist)
                     for dice in rerolllist:
                         window['dice' + str(dice-1)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice-1]], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), visible=True)
                     rerolllist.clear()
                     window['reroll'].update('')
-                    #window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
-                    
+                          
                 else:
                     psg.popup("You have used all your rerolls!")
+            
             elif event == "Score":
                 try:
 
@@ -441,6 +444,7 @@ class GUI:
                     scorecardlist.append([key, player.scorecard.scorecard[key]])
                 
                 playerscoretable.update(scorecardlist)
+                
                 time.sleep(2) # let user see scorecard
                 
                 break
@@ -449,9 +453,35 @@ class GUI:
             
         window.close()
 
+    def ai_turn_gui(self, player):
+        self.game.dice.roll()
+        player.play()
+
+        scorecardlist = []
+        for key in player.scorecard.keylist:
+            scorecardlist.append([key, player.scorecard.scorecard[key]])
+
+      
+        playerscoretable = psg.Table(values = scorecardlist, headings = ["Category", "Score"], num_rows=(14), auto_size_columns=True, justification='c')
+        
+        layout = [
+            [psg.Text("Round " + str(self.game.roundnum))],
+            [psg.Text(str(player.name) + "'s turn")],
+            [playerscoretable],
+        ]
+
+        window = psg.Window("Yahtzee", layout, size=(700, 600), element_justification='c')
+        while True:
+            event,values = window.read()
+            if event == psg.WIN_CLOSED:
+                break
+        
+        window.close()
+        
 
 
-            
+
+# gets game mode from user input          
 def __get_game_mode():
     game_mode = input("Play in terminal or GUI? (t/g): ")
     if game_mode == "t":
@@ -464,8 +494,8 @@ def __get_game_mode():
         print("Invalid game mode")
         __get_game_mode()
 
-
-if __name__ == "__main__":    # Main function
+# main function
+if __name__ == "__main__":    
     __get_game_mode()
 
     

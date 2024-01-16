@@ -57,27 +57,6 @@ class Scorecard:        # Scorecard class - built in scoring methods
         self.total_score = 0
         self.keylist = [key for key in self.scorecard.keys()]
 
-# add in choice validation, prevent user from choosing same option twice
-
-    
-
-    '''def get_choice(self):
-        try:
-            choice = (int(input("Enter your choice: ")))
-            
-        except ValueError or TypeError:
-            print("Invalid choice")
-            choice = self.get_choice()
-
-        if choice not in range(1, 14):
-                choice = self.get_choice()
-            #prevent user from choosing same option twice
-        
-        if self.scorecard[self.keylist[choice-1]] != None:
-                choice = self.get_choice()
-            # check later
-
-        return choice'''
     
     def show_scorecard(self):
         print("Scorecard")
@@ -85,12 +64,6 @@ class Scorecard:        # Scorecard class - built in scoring methods
             print(f"{key}: {value}")
 
     def score_roll(self, dice, choice):
-
-        #print("Enter the number of the category you would like to score")
-        #self.show_scorecard()
-        #choice = self.get_choice()
-
-
 
         if choice == 1:
             self.scorecard["1.ones"] = self.score_ones(dice)
@@ -221,8 +194,7 @@ class Dice:         # Dice class
         self.dice = [0 for i in range(Game.DICE)]
         
 
-    #def __repr__(self) -> str:
-        #return f"{self.dice}"
+   
 
     def get_dice(self):
         return self.dice
@@ -250,15 +222,6 @@ class Dice:         # Dice class
     def count(self, number):
         return self.dice.count(number)
     
-
-
-    
-    def get_reroll_choice(self):
-        choice = random.randint(0, 1)
-        if choice == 0:
-            return "n"
-        else:
-            return "y"
         
     
 
@@ -266,10 +229,11 @@ class Dice:         # Dice class
 class Game:             # Game class
 
 
+    #initialise constants
     REROLLS = 2
     DICE = 5
     NUM_ROUNDS = 13
-    import AICLASS as ai
+    
 
     def __init__(self):
         
@@ -283,37 +247,6 @@ class Game:             # Game class
         self.winner = None
         self.takennames = []
         
-        
-
-    def turn(self,player):
-
-        if player is isinstance(player, EasyAI):
-            self.dice.roll()
-            player.play(self.dice)
-        else:
-
-            self.dice.roll()
-            while self.rerolls < Game.REROLLS:
-                self.dice.reroll()
-                self.rerolls += 1
-        
-
-
-
-    '''def round(self):
-        self.roundnum += 1
-
-        for player in self.players:
-            self.dice.roll()
-            
-            
-            while self.rerolls < Game.REROLLS:
-                self.dice.reroll()
-                self.rerolls += 1
-            
-            player.scorecard.score_roll(self.dice)
-            player.scorecard.show_scorecard()
-            self.rerolls = 0 '''
 
     def get_winner(self):
         
@@ -326,7 +259,7 @@ class Game:             # Game class
                 self.winner = player
             
         return self.winner   
-       # print(f"{self.winner.get_name()} wins with {self.winner.get_score()} points")
+      
 
 
 class EasyAI(Player):
@@ -337,18 +270,18 @@ class EasyAI(Player):
         self.scorecard = Scorecard()
 
     def play(self, dice):
-        self.scorecard.score_roll(dice, self.choosecategory(dice))
+        self.scorecard.score_roll(dice, self.__choosecategory(dice))
 
 
-    def merge_sort(self, alist):
+    def __merge_sort(self, alist):
         if len(alist) <= 1:
             return alist
         else:
-            left = self.merge_sort(alist[:len(alist)//2])
-            right = self.merge_sort(alist[len(alist)//2:])
-            return self.merge(left, right)
+            left = self.__merge_sort(alist[:len(alist)//2])
+            right = self.__merge_sort(alist[len(alist)//2:])
+            return self.__merge(left, right)
         
-    def merge(self, left, right):
+    def __merge(self, left, right):
         result = []
         while len(left) > 0 and len(right) > 0:
             if left[0] <= right[0]:
@@ -380,7 +313,7 @@ class EasyAI(Player):
         
     
 
-    def choosecategory(self, dice):
+    def __choosecategory(self, dice):
         #dicestates = self.FindDiceState(dice)
         
         # make dictionary of scorable categories
@@ -424,7 +357,7 @@ class EasyAI(Player):
             
         # sort the dictionary by value
         
-        sorted_scores = dict(self.merge_sort(predicted_scores.items(), key=lambda x: x[1]))
+        sorted_scores = dict(self.__merge_sort(predicted_scores.items(), key=lambda x: x[1]))
         chosen_category =sorted_scores.popitem()
 
         return chosen_category[0]

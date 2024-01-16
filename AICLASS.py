@@ -34,3 +34,6 @@ class Ai_player(game.Player):
         self.categories.remove(category)
         self.turn += 1
         return self.score                       
+    
+
+    
