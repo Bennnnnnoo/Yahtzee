@@ -1,4 +1,5 @@
-#Yahtzee game code
+## Yahtzee game code ##
+
 import random, math, PySimpleGUI as sg
 
 
@@ -13,7 +14,7 @@ class Player:           # Player class
         return self.name
     
     def get_scorecard(self):
-        return self.scorecard
+        return self.scorecard   
     
     def get_score(self):
         return self.scorecard.score

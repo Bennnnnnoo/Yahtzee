@@ -1,4 +1,6 @@
 from Yahtzeegamecode import Game, Player, EasyAI, Scorecard, Dice
+## UI code ##
+
 import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3, statistics
 
 
