@@ -169,7 +169,10 @@ class GUI:
                   [psg.Button("Leaderboard", size = (50, 5))], 
                   [psg.T("")],
                   [psg.Button("Rules", size = (50, 5))],
-
+                    [psg.T("")],
+                    [psg.Button("Settings", size = (50, 5))],
+                    [psg.T("")],
+                    [psg.Button("Exit", size = (25, 2))]
                   ]
                   
         window = psg.Window("Yahtzee", layout, size=(700, 700), element_justification='c')
@@ -188,6 +191,12 @@ class GUI:
             
             elif event == "Rules":
                 self.rules()
+
+            elif event == "Settings":
+                self.settings()
+
+            elif event == "Exit":
+                break
             
             elif event == psg.WIN_CLOSED:
                 break
