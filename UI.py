@@ -194,6 +194,9 @@ class GUI:
 
             elif event == "Settings":
                 self.settings()
+                window.close()
+                psg.popup("Settings applied")
+                self.run()
 
             elif event == "Exit":
                 break
@@ -485,6 +488,27 @@ class GUI:
         while True:
             event,values = window.read()
             if event == psg.WIN_CLOSED:
+                break
+        
+        window.close()
+
+    def settings(self):
+        layout = [
+            [psg.Text("Settings")],
+            [psg.Text("Theme")],
+            [psg.Combo(psg.theme_list(), default_value=self.__theme, key='theme')],
+            [psg.Button("Apply")]
+        ]
+
+        window = psg.Window("Settings", layout, element_justification='c')
+
+        while True:
+            event, values = window.read()
+            if event == "Apply":
+                self.__theme = values['theme']
+                psg.theme(self.__theme)
+                break
+            elif event == psg.WIN_CLOSED:
                 break
         
         window.close()
