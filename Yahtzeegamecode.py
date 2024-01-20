@@ -189,6 +189,85 @@ class Scorecard:        # Scorecard class - built in scoring methods
     def get_score(self):
         return self.score
     
+    def genlist(self):
+        dictlist = []
+        for key, value in self.scorecard.items():
+            dictlist.append([key,value])
+        return dictlist
+
+        
+    
+class EZBoard(Scorecard): # player assistance board
+    def __init__(self, player):
+        super().__init__()
+        self.scorecard = {
+            "1.ones": None,
+            "2.twos": None,
+            "3.threes": None,
+            "4.fours": None,
+            "5.fives": None,
+            "6.sixes": None,
+            "7.three of a kind": None,
+            "8.four of a kind": None,
+            "9.full house": None,
+            "10.small straight": None,
+            "11.large straight": None,
+            "12.yahtzee": None,
+            "13.chance": None
+        }
+        self.player = player
+
+    def update_scorecard(self, dice):
+        #calculate expected value for each category
+        for key in self.scorecard:
+            
+                if key == "1.ones":
+                    self.scorecard[key] = self.score_ones(dice)
+                elif key == "2.twos":
+                    self.scorecard[key] = self.score_twos(dice)
+                elif key == "3.threes":
+                    self.scorecard[key] = self.score_threes(dice)
+                elif key == "4.fours":
+                    self.scorecard[key] = self.score_fours(dice)
+                elif key == "5.fives":
+                    self.scorecard[key] = self.score_fives(dice)
+                elif key == "6.sixes":
+                    self.scorecard[key] = self.score_sixes(dice)
+                elif key == "7.three of a kind":
+                    self.scorecard[key] = self.score_three_of_a_kind(dice)
+                elif key == "8.four of a kind":
+                    self.scorecard[key] = self.score_four_of_a_kind(dice)
+                elif key == "9.full house":
+                    self.scorecard[key] = self.score_full_house(dice)
+                elif key == "10.small straight":
+                    self.scorecard[key] = self.score_small_straight(dice)
+                elif key == "11.large straight":
+                    self.scorecard[key] = self.score_large_straight(dice)
+                elif key == "12.yahtzee":
+                    self.scorecard[key] = self.score_yahtzee(dice)
+                elif key == "13.chance":
+                    self.scorecard[key] = self.score_chance(dice)
+                else:
+                    raise NotImplementedError
+
+            
+          
+            
+        return self.scorecard
+    
+    def bonus_calc(self):
+        if self.player.get_upper_score() >= 63:
+            return '35'
+        else:
+            return f'0, ({self.player.get_upper_score() - 63})'
+            
+    
+    
+        
+
+    
+
+    
 class Dice:         # Dice class
     def __init__(self):
         #self.dice = [1,3,1,4,2]     #test case

@@ -1,4 +1,4 @@
-from Yahtzeegamecode import Game, Player, EasyAI, Scorecard, Dice
+from Yahtzeegamecode import Game, Player, EasyAI, EZBoard, Dice, Scorecard
 ## UI code ##
 
 import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3, statistics
@@ -145,8 +145,9 @@ class GUI:
     #GUI initialisation
     def __init__(self):
         self.game = Game()
-        self.__theme = "DarkGreen1"
+        self.__theme = "DarkGrey1"
         self.__rules = 'Rules.txt'
+        self.EZboardopt = False
         self.dice_colours = ['white', 'purple']
         self.dice_images = {
         1:None,
@@ -157,6 +158,7 @@ class GUI:
         6:None
     }
         self.dice_unpack('white')
+
 
 
     def dice_unpack(self, colour):
@@ -297,7 +299,7 @@ class GUI:
                 self.playernum = int(psg.popup_get_text("Enter the number of players: "))
                 self.AIplayers = int(psg.popup_get_text("Enter the number of AI players: "))
                 break
-            except TypeError or ValueError:
+            except (ValueError, TypeError):
                 psg.popup("Invalid number of players")
                 continue
 
@@ -383,15 +385,25 @@ class GUI:
       
         playerscoretable = psg.Table(values = scorecardlist, headings = ["Category", "Score"], num_rows=(14), auto_size_columns=True, justification='c')
         
-      
         self.game.rerolls = 0
         self.game.dice.roll()
+
+        if self.EZboardopt:
+            EZboard = EZBoard(player)
+            EZboard.update_scorecard(self.game.dice)
+            EZscorecardlist = EZboard.genlist()
+           # for key in EZboard.keylist:
+            #    scorecardlist.append([key, EZboard.scorecard[key]])
+            EZboardtable = psg.Table(values = EZscorecardlist, headings = ["Category", " Expected Score"], num_rows=(14), auto_size_columns=True, justification='c')
+      
+        
+            
 
         
         layout = [
             [psg.Text("Round " + str(self.game.roundnum))],
             [psg.Text(str(player.name) + "'s turn")],
-            [playerscoretable],
+            [playerscoretable] + ([EZboardtable] if self.EZboardopt else []),
             [psg.Text('Your dice are: ' + str(self.game.dice.get_dice()), key='dice')]
         ] + [
             [psg.Button('', image_filename=self.dice_images[dice], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), key='dice' + str(index)) for index,dice in enumerate(self.game.dice.get_dice())]
@@ -441,9 +453,17 @@ class GUI:
                     for dice in rerolllist:
                         window['dice' + str(dice-1)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice-1]], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), visible=True)
                     rerolllist.clear()
-                    window['reroll'].update('')
+                    
+                    if self.EZboardopt:
+                        EZboard.update_scorecard(self.game.dice)
+                        EZboardtable.update(EZboard.genlist())
+
+                    if self.game.rerolls == self.game.REROLLS:
+                        window['Reroll'].update('No rerolls left')
+                    
                           
                 else:
+                    window['Reroll'].update('No rerolls left')
                     psg.popup("You have used all your rerolls!")
             
             elif event == "Score":
@@ -463,11 +483,10 @@ class GUI:
                 player.scorecard.score_roll(self.game.dice, int(values['score_category']))
                 window['Score'].update(visible=False)
                 scorecardlist.clear()
-                for key in player.scorecard.keylist:
-                    scorecardlist.append([key, player.scorecard.scorecard[key]])
+                scorecardlist = player.scorecard.genlist()
                 
                 playerscoretable.update(scorecardlist)
-                
+                window.refresh()
                 time.sleep(2) # let user see scorecard
                 
                 break
@@ -508,9 +527,11 @@ class GUI:
             [psg.Text("Settings")],
             [psg.Text("Theme")],
             [psg.Combo(psg.theme_list(), default_value=self.__theme, key='theme')],
-            [psg.T("")],
-            [psg.Combo(self.dice_colours, default_value='white', key = 'dice_colour')], # dice colour
+            [psg.T("Dice colour")],
+            [psg.Combo(self.dice_colours, default_value='white', key = 'dice_colour')], 
+            [psg.Checkbox('EZboard', default=self.EZboardopt, key='EZboard')],
             [psg.Button("Apply")]
+            
         ]
 
         window = psg.Window("Settings", layout, element_justification='c')
@@ -521,6 +542,7 @@ class GUI:
                 self.__theme = values['theme']
                 psg.theme(self.__theme)
                 self.dice_unpack(values['dice_colour'])
+                self.EZboardopt = values['EZboard']
                 break
             
 
