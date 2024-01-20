@@ -141,25 +141,34 @@ class GUI:
 
     #dice image initialisation
     
-    dice_images = {
-        1:'D1.png',
-        2:'D2.png',
-        3:'D3.png',
-        4:'D4.png',
-        5:'D5.png',
-        6:'D6.png'
-    }
-
+    
     #GUI initialisation
     def __init__(self):
         self.game = Game()
         self.__theme = "DarkGreen1"
         self.__rules = 'Rules.txt'
-        self.dice_images = GUI.dice_images
+        self.dice_colours = ['white', 'purple']
+        self.dice_images = {
+        1:None,
+        2:None,
+        3:None,
+        4:None,
+        5:None,
+        6:None
+    }
+        self.dice_unpack('white')
 
+
+    def dice_unpack(self, colour):
+        dice_images_path = os.path.join(colour, '')
+        dicepack = enumerate(sorted([filename for filename in os.listdir(colour)]))
+        for index, dice in dicepack:
+            self.dice_images[index+1] = os.path.join(dice_images_path, dice)
+            
     #run game in GUI
 
     def run(self):
+
         psg.theme(self.__theme)
 
         layout = [[psg.Text("Welcome to Yahtzee!")],
@@ -492,11 +501,15 @@ class GUI:
         
         window.close()
 
+    
+    # settings page
     def settings(self):
         layout = [
             [psg.Text("Settings")],
             [psg.Text("Theme")],
             [psg.Combo(psg.theme_list(), default_value=self.__theme, key='theme')],
+            [psg.T("")],
+            [psg.Combo(self.dice_colours, default_value='white', key = 'dice_colour')], # dice colour
             [psg.Button("Apply")]
         ]
 
@@ -507,7 +520,10 @@ class GUI:
             if event == "Apply":
                 self.__theme = values['theme']
                 psg.theme(self.__theme)
+                self.dice_unpack(values['dice_colour'])
                 break
+            
+
             elif event == psg.WIN_CLOSED:
                 break
         
