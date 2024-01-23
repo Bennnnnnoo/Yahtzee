@@ -1,6 +1,6 @@
 ## Yahtzee game code ##
 
-import random, math, PySimpleGUI as sg
+import random, math, PySimpleGUI as sg, re, numpy as np
 
 
 
@@ -136,21 +136,11 @@ class Scorecard:        # Scorecard class - built in scoring methods
             return 25
         else:
             return 0
-
-
-    def score_small_straight(self, dice):
-        sortedlist = []
-        for die in sorted(dice.get_dice()):
-            if die not in sortedlist:
-                sortedlist.append(die)
-        if sortedlist == [1, 2, 3, 4] or sortedlist == [2, 3, 4, 5] or sortedlist == [3, 4, 5, 6] or sortedlist == [1, 2, 3, 4, 5] or sortedlist == [2, 3, 4, 5, 6]:
-            return 30
-        else:
-            return 0
-       
-        # check quicker using regex?
         
-     
+        
+    #use regex to check for small straight
+    def score_small_straight(self, dice):
+        match = re.search(r'1234|2345|3456|12345|23456', ''.join(str(die) for die in sorted(dice.get_dice())))
 
 
     def score_large_straight(self, dice):

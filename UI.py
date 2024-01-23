@@ -348,7 +348,9 @@ class GUI:
         window = psg.Window("Yahtzee", layout, element_justification='c')
 
         for player in self.game.players:
-            self.addtoleaderboard(player)
+            # check if player is AI
+            if not isinstance(player, EasyAI):
+                self.addtoleaderboard(player)
         
         while True:
             event, values = window.read()
@@ -497,7 +499,7 @@ class GUI:
 
     def ai_turn_gui(self, player):
         self.game.dice.roll()
-        player.play()
+        player.play(self.game.dice.getdice())
 
         scorecardlist = []
         for key in player.scorecard.keylist:
