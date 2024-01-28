@@ -141,7 +141,10 @@ class Scorecard:        # Scorecard class - built in scoring methods
     #use regex to check for small straight
     def score_small_straight(self, dice):
         match = re.search(r'1234|2345|3456|12345|23456', ''.join(str(die) for die in sorted(dice.get_dice())))
-
+        if match:
+            return 30
+        else:
+            return 0
 
     def score_large_straight(self, dice):
         if sorted(dice.get_dice()) == [2, 3, 4, 5, 6] or sorted(dice.get_dice()) == [1, 2, 3, 4, 5]:
@@ -329,6 +332,9 @@ class Game:             # Game class
                 self.winner = player
             
         return self.winner   
+    
+    def endgame(self):
+        del self
       
 
 
@@ -346,23 +352,40 @@ class EasyAI(Player):
     def __merge_sort(self, alist):
         if len(alist) <= 1:
             return alist
-        else:
-            left = self.__merge_sort(alist[:len(alist)//2])
-            right = self.__merge_sort(alist[len(alist)//2:])
-            return self.__merge(left, right)
-        
-    def __merge(self, left, right):
-        result = []
-        while len(left) > 0 and len(right) > 0:
-            if left[0] <= right[0]:
-                result.append(left.pop(0))
+        mid = len(alist) // 2
+        left = alist[:mid]
+        right = alist[mid:]
+
+        self.__merge_sort(left)
+        self.__merge_sort(right)
+
+        i = 0
+        j = 0
+        k = 0
+
+        while i < len(left) and j < len(right):
+            if left[i][1] < right[j][1]:
+                alist[k] = left[i]
+                i += 1
             else:
-                result.append(right.pop(0))
-        if len(left) > 0:
-            result.extend(left)
-        else:
-            result.extend(right)
-        return result
+                alist[k] = right[j]
+                j += 1
+            k += 1
+
+        while i < len(left):
+            alist[k] = left[i]
+            i += 1
+            k += 1
+
+        while j < len(right):
+            alist[k] = right[j]
+            j += 1
+            k += 1
+
+        return alist
+        
+
+            
 
 # count how many of each dice there are
 
@@ -387,50 +410,53 @@ class EasyAI(Player):
         #dicestates = self.FindDiceState(dice)
         
         # make dictionary of scorable categories
-
-        scoreablecategories = self.scorecard.get_scorecard()
+        scored = []
+        scoreablecategories = self.scorecard.get_scorecard().copy()
         for key, value in scoreablecategories.items():
             if value != None:
-                del scoreablecategories[key]
+                scored.append(key)
+        for key in scored:
+            scoreablecategories.pop(key, None)
 
-        predicted_scores = {}
+        predicted_scores = {
+        }
 
         for key, value in scoreablecategories.items():
             if key == "1.ones":
-                predicted_scores[key] = self.scorecard.score_ones(dice)
+                predicted_scores[1] = self.scorecard.score_ones(dice)
             elif key == "2.twos":
-                predicted_scores[key] = self.scorecard.score_twos(dice)
+                predicted_scores[2] = self.scorecard.score_twos(dice)
             elif key == "3.threes":
-                predicted_scores[key] = self.scorecard.score_threes(dice)
+                predicted_scores[3] = self.scorecard.score_threes(dice)
             elif key == "4.fours":
-                predicted_scores[key] = self.scorecard.score_fours(dice)
+                predicted_scores[4] = self.scorecard.score_fours(dice)
             elif key == "5.fives":
-                predicted_scores[key] = self.scorecard.score_fives(dice)
+                predicted_scores[5] = self.scorecard.score_fives(dice)
             elif key == "6.sixes":
-                predicted_scores[key] = self.scorecard.score_sixes(dice)
+                predicted_scores[6] = self.scorecard.score_sixes(dice)
             elif key == "7.three of a kind":
-                predicted_scores[key] = self.scorecard.score_three_of_a_kind(dice)
+                predicted_scores[7] = self.scorecard.score_three_of_a_kind(dice)
             elif key == "8.four of a kind":
-                predicted_scores[key] = self.scorecard.score_four_of_a_kind(dice)
+                predicted_scores[8] = self.scorecard.score_four_of_a_kind(dice)
             elif key == "9.full house":
-                predicted_scores[key] = self.scorecard.score_full_house(dice)
+                predicted_scores[9] = self.scorecard.score_full_house(dice)
             elif key == "10.small straight":
-                predicted_scores[key] = self.scorecard.score_small_straight(dice)
+                predicted_scores[10] = self.scorecard.score_small_straight(dice)
             elif key == "11.large straight":
-                predicted_scores[key] = self.scorecard.score_large_straight(dice)
+                predicted_scores[11] = self.scorecard.score_large_straight(dice)
             elif key == "12.yahtzee":
-                predicted_scores[key] = self.scorecard.score_yahtzee(dice)
+                predicted_scores[12] = self.scorecard.score_yahtzee(dice)
             elif key == "13.chance":
-                predicted_scores[key] = self.scorecard.score_chance(dice)
+                predicted_scores[13] = self.scorecard.score_chance(dice)
             else:
                 raise NotImplementedError
             
         # sort the dictionary by value
         
-        sorted_scores = dict(self.__merge_sort(predicted_scores.items(), key=lambda x: x[1]))
-        chosen_category =sorted_scores.popitem()
+        sorted_scores = self.__merge_sort(list(predicted_scores.items()))
+        chosen_category = sorted_scores.pop()[0]
 
-        return chosen_category[0]
+        return chosen_category
         
 
 

@@ -1,7 +1,7 @@
 from Yahtzeegamecode import Game, Player, EasyAI, EZBoard, Dice, Scorecard
 ## UI code ##
 
-import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3, statistics
+import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3, statistics, tkinter
 
 
 # Terminal UI
@@ -30,6 +30,10 @@ class Terminal:
                 except ValueError:
                     print("Invalid number of players")
                     continue
+
+
+
+            
                     
 
                 
@@ -173,7 +177,7 @@ class GUI:
 
         psg.theme(self.__theme)
 
-        layout = [[psg.Text("Welcome to Yahtzee!")],
+        layout = [[psg.Text("Welcome to Yahtzee!", font=("Helvetica", 25))],
                   [psg.T("")],
                   [psg.Button("Start new Game", size = (50, 5) )],
                   [psg.T("")],
@@ -186,7 +190,7 @@ class GUI:
                     [psg.Button("Exit", size = (25, 2))]
                   ]
                   
-        window = psg.Window("Yahtzee", layout, size=(700, 700), element_justification='c')
+        window = psg.Window("Yahtzee", layout, size=(700, 700), element_justification='c', resizable=True)
         
         while True:
             event, values = window.read()
@@ -302,6 +306,7 @@ class GUI:
             except (ValueError, TypeError):
                 psg.popup("Invalid number of players")
                 continue
+            
 
         for self.player in range(self.playernum):
             self.game.players.append(Player())
@@ -414,7 +419,7 @@ class GUI:
             [psg.Text('click dice to reroll, then click reroll button')],
             
             [psg.Button("Reroll")],
-            [psg.Input(key='score_category')],
+            [psg.InputText(tooltip='Enter the number of the category you want to score', key='score_category')],
             [psg.Button("Score")]
         ]
         
@@ -463,43 +468,53 @@ class GUI:
                     if self.game.rerolls == self.game.REROLLS:
                         window['Reroll'].update('No rerolls left')
                     
+                    window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
+                    
                           
                 else:
                     window['Reroll'].update('No rerolls left')
                     psg.popup("You have used all your rerolls!")
             
             elif event == "Score":
-                try:
-
-                    if player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
-                        psg.popup("Category already scored")
-                        break
-                    elif int(values['score_category']) not in range(1, 14):
-                        psg.popup("Invalid choice- must be between 1 and 13")
-                        break
-                except ValueError or TypeError:
-                    psg.popup("Invalid choice")
-                    
-                    
-
-                player.scorecard.score_roll(self.game.dice, int(values['score_category']))
-                window['Score'].update(visible=False)
-                scorecardlist.clear()
-                scorecardlist = player.scorecard.genlist()
+                validflag = False
+                while True:
+                    try:
+                        if player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
+                            psg.popup("Category already scored")
+                            break                            
+                        elif int(values['score_category']) not in range(1, 14):
+                            psg.popup("Invalid choice- must be between 1 and 13")
+                            break
+                        else:
+                            validflag = True
+                            break
+                        
+                    except ValueError or TypeError:
+                        psg.popup("Invalid choice")
+            
+                if validflag:
+                                
+                    player.scorecard.score_roll(self.game.dice, int(values['score_category']))
+                    window['Score'].update(visible=False)
+                    scorecardlist.clear()
+                    scorecardlist = player.scorecard.genlist()
                 
-                playerscoretable.update(scorecardlist)
-                window.refresh()
-                time.sleep(2) # let user see scorecard
+                    playerscoretable.update(scorecardlist)
+                    window.refresh()
+                    time.sleep(2) # let user see scorecard
                 
-                break
+                    break
+                else:
+                    continue
             elif event == psg.WIN_CLOSED:
-                break
+                del window
+                sys.exit()
             
         window.close()
 
     def ai_turn_gui(self, player):
         self.game.dice.roll()
-        player.play(self.game.dice.getdice())
+        player.play(self.game.dice)
 
         scorecardlist = []
         for key in player.scorecard.keylist:
