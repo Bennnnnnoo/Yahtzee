@@ -513,8 +513,8 @@ class GUI:
         window.close()
 
     def ai_turn_gui(self, player):
-        self.game.dice.roll()
-        player.play(self.game.dice)
+        player.dice.roll()
+        player.play(player.dice)
 
         scorecardlist = []
         for key in player.scorecard.keylist:

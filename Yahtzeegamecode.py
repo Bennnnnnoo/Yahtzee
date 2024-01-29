@@ -344,6 +344,9 @@ class EasyAI(Player):
         super().__init__()
         self.name = "Easy AI"
         self.scorecard = Scorecard()
+        self.rerolls = 2
+        self.dice = Dice()
+        
 
     def play(self, dice):
         self.scorecard.score_roll(dice, self.__choosecategory(dice))
@@ -454,9 +457,19 @@ class EasyAI(Player):
         # sort the dictionary by value
         
         sorted_scores = self.__merge_sort(list(predicted_scores.items()))
-        chosen_category = sorted_scores.pop()[0]
+        category = sorted_scores.pop()
+        chosen_category = category[0]
+        expscore = category[1]
+        if expscore == 0 and self.rerolls > 0:
+            self.dice.roll()
+            self.rerolls -= 1
+            return self.__choosecategory(self.dice)
 
-        return chosen_category
+
+        
+        else:
+            self.rerolls = 2
+            return chosen_category
         
 
 
