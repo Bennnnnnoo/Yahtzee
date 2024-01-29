@@ -138,7 +138,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
             return 0
         
         
-    #use regex to check for small straight
+    # use regex to check for small straight
     def score_small_straight(self, dice):
         match = re.search(r'1234|2345|3456|12345|23456', ''.join(str(die) for die in sorted(list(set(dice.get_dice())))))
         if match:
@@ -171,6 +171,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
                 self.upper_score += value
             else:
                 self.lower_score += value
+        # add bonus if applicable
         if self.upper_score >= 63:
             self.bonus = 35
         self.score = self.upper_score + self.lower_score + self.bonus
@@ -320,7 +321,7 @@ class Game:             # Game class
         self.winner = None
         self.takennames = []
         
-
+    # find winner
     def get_winner(self):
         
         current_score = 0
@@ -333,11 +334,10 @@ class Game:             # Game class
             
         return self.winner   
     
-    def endgame(self):
-        del self
+    
       
 
-
+# Easy AI class
 class EasyAI(Player):
 
     def __init__(self):
@@ -351,7 +351,7 @@ class EasyAI(Player):
     def play(self, dice):
         self.scorecard.score_roll(dice, self.__choosecategory(dice))
 
-
+    # merge sort algorithm to sort the dictionary by value
     def __merge_sort(self, alist):
         if len(alist) <= 1:
             return alist
@@ -410,7 +410,7 @@ class EasyAI(Player):
     
 
     def __choosecategory(self, dice):
-        #dicestates = self.FindDiceState(dice)
+        
         
         # make dictionary of scorable categories
         scored = []

@@ -10,7 +10,7 @@ class Terminal:
     
 
 
-        
+        # initialise game
         def __init__(self):
 
             self.game = Game()
@@ -23,6 +23,7 @@ class Terminal:
             
             
             while True:
+                # get number of players
                 try:
                     self.playernum = int(input("Enter the number of players: "))
                     self.AIplayers = int(input("Enter the number of AI players: "))
@@ -37,22 +38,24 @@ class Terminal:
                     
 
                 
-            
+            # add players to game
             for player in range(self.playernum):
                 self.game.players.append(Player())
-
+            # add AI players to game
             for player in range(self.AIplayers):
                 self.game.players.append(EasyAI())
 
-
+            # get player names
             for player in self.game.players:
                 player.name = input("Enter your name: ")
-    
+            
+            # play game
             while self.game.roundnum < 13:
                 self.tround()
 
             print('Game Over!')
             
+            # end sequence
             for player in self.game.players:
                 print(player.name + "'s score is: " + str(player.scorecard.get_total_score()))
                 print('the winner is'+ self.game.get_winner() + 'with a score of' + self.game.get_winner.score())
@@ -76,6 +79,7 @@ class Terminal:
             try:
                 choice = (int(input("Enter your choice: ")))
             
+            # check if choice is valid
             except ValueError or TypeError:
                 print("Invalid choice")
                 choice = self.__get_category_choice(player)
@@ -161,11 +165,11 @@ class GUI:
         5:None,
         6:None
     }
-        self.dice_unpack('white')
+        self.__dice_unpack('white')
 
 
-
-    def dice_unpack(self, colour):
+    # unpack dice images from folder
+    def __dice_unpack(self, colour):
         dice_images_path = os.path.join(colour, '')
         dicepack = enumerate(sorted([filename for filename in os.listdir(colour)]))
         for index, dice in dicepack:
@@ -174,9 +178,10 @@ class GUI:
     #run game in GUI
 
     def run(self):
-
+        # set theme
         psg.theme(self.__theme)
 
+        # main menu
         layout = [[psg.Text("Welcome to Yahtzee!", font=("Helvetica", 25))],
                   [psg.T("")],
                   [psg.Button("Start new Game", size = (50, 5) )],
@@ -225,11 +230,12 @@ class GUI:
         
     def leaderboard(self):
         
+        # check if leaderboard exists
         if not os.path.isfile('leaderboard.db'):
             psg.popup("No leaderboard found")
             return
         
-        
+        # get leaderboard from database
         conn = sqlite3.connect('leaderboard.db')
         c = conn.cursor()
         c.execute("SELECT player_name, score FROM leaderboard ORDER BY score DESC")
@@ -273,7 +279,8 @@ class GUI:
 
     # rules page
     def rules(self):
-
+        
+        # read rules from file
         with open(self.__rules, 'r') as f:
             rules = f.read()
 
@@ -299,6 +306,7 @@ class GUI:
     def newgame(self):
         self.game = Game()
         while True:
+            # get number of players
             try:
                 self.playernum = int(psg.popup_get_text("Enter the number of players: "))
                 self.AIplayers = int(psg.popup_get_text("Enter the number of AI players: "))
@@ -311,13 +319,15 @@ class GUI:
         for self.player in range(self.playernum):
             self.game.players.append(Player())
 
+        # get player names
         for player in self.game.players:
             player.name = psg.popup_get_text("Enter your name: ")
 
         for self.player in range(self.AIplayers):
-            # add hard AI
+            # add AI
             self.game.players.append(EasyAI())
 
+        # play game
         while self.game.roundnum < self.game.NUM_ROUNDS:       
             self.roundgui()
 
@@ -326,13 +336,17 @@ class GUI:
         psg.popup("Game Over!")
 
         winner = self.game.get_winner()
-  
+
+        # get player scores
+
         playerlist = [player.get_name() for player in self.game.players]
         scorelist = [player.scorecard.get_score() for player in self.game.players]
+        # create dictionary of player names and scores
         scorecarddict = dict(zip(playerlist, scorelist))
 
         tablelist = []
 
+        # add scores to table
         for key in scorecarddict:
             if scorecarddict[key] == None:
                 scorecarddict[key] = 0
@@ -352,6 +366,7 @@ class GUI:
 
         window = psg.Window("Yahtzee", layout, element_justification='c')
 
+        # add players to leaderboard
         for player in self.game.players:
             # check if player is AI
             if not isinstance(player, EasyAI):
@@ -385,6 +400,7 @@ class GUI:
     # turn sequence
     def turngui(self, player):
 
+        
         scorecardlist = []
         for key in player.scorecard.keylist:
             scorecardlist.append([key, player.scorecard.scorecard[key]])
@@ -395,12 +411,11 @@ class GUI:
         self.game.rerolls = 0
         self.game.dice.roll()
 
+        # create EZboard if option selected
         if self.EZboardopt:
             EZboard = EZBoard(player)
             EZboard.update_scorecard(self.game.dice)
             EZscorecardlist = EZboard.genlist()
-           # for key in EZboard.keylist:
-            #    scorecardlist.append([key, EZboard.scorecard[key]])
             EZboardtable = psg.Table(values = EZscorecardlist, headings = ["Category", " Expected Score"], num_rows=(14), auto_size_columns=True, justification='c')
       
         
@@ -464,10 +479,12 @@ class GUI:
                         window['dice' + str(dice-1)].update(image_filename=self.dice_images[self.game.dice.get_dice()[dice-1]], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), visible=True)
                     rerolllist.clear()
                     
+                    # update EZboard if option selected
                     if self.EZboardopt:
                         EZboard.update_scorecard(self.game.dice)
                         EZboardtable.update(EZboard.genlist())
 
+                    
                     if self.game.rerolls == self.game.REROLLS:
                         window['Reroll'].update('No rerolls left')
                     
@@ -479,6 +496,7 @@ class GUI:
                     psg.popup("You have used all your rerolls!")
             
             elif event == "Score":
+                # check if category choice is valid
                 validflag = False
                 while True:
                     try:
@@ -502,7 +520,7 @@ class GUI:
                         psg.popup("Invalid choice")
             
                 if validflag:
-                                
+                    # score category     
                     player.scorecard.score_roll(self.game.dice, int(values['score_category']))
                     window['Score'].update(visible=False)
                     scorecardlist.clear()
@@ -521,6 +539,7 @@ class GUI:
             
         window.close()
 
+    # play AI turn in GUI
     def ai_turn_gui(self, player):
         player.dice.roll()
         player.play(player.dice)
@@ -571,7 +590,7 @@ class GUI:
             if event == "Apply":
                 self.__theme = values['theme']
                 psg.theme(self.__theme)
-                self.dice_unpack(values['dice_colour'])
+                self.__dice_unpack(values['dice_colour'])
                 self.EZboardopt = values['EZboard']
                 break
             
