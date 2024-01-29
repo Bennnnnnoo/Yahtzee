@@ -61,34 +61,34 @@ class Terminal:
 
         # get user input for rerolls
             
-        def get_reroll_choice(self):
+        def __get_reroll_choice(self):
             try:
                 reroll_list = int(input("Enter the dice indexes you want to reroll: ")).split(',')
             except ValueError or TypeError:
                 print("Invalid choice")
-                reroll_list = self.get_reroll_choice()
+                reroll_list = self.__get_reroll_choice()
             
             return reroll_list
             
         # get user input for category choice
 
-        def get_category_choice(self,player):
+        def __get_category_choice(self,player):
             try:
                 choice = (int(input("Enter your choice: ")))
             
             except ValueError or TypeError:
                 print("Invalid choice")
-                choice = self.get_category_choice(player)
+                choice = self.__get_category_choice(player)
 
             if choice not in range(1, 14):
                 print("Invalid choice- must be between 1 and 13")
-                choice = self.get_category_choice(player)
+                choice = self.__get_category_choice(player)
             
 
             
             if player.get_scorecard().scorecard[player.scorecard.keylist[choice-1]] != None:
                 print("Category already scored")
-                choice = self.get_category_choice(player)
+                choice = self.__get_category_choice(player)
             
 
             return choice  
@@ -102,7 +102,7 @@ class Terminal:
             print("Round " + str(self.game.roundnum))
             for player in self.game.players:
                 if isinstance(player, EasyAI):
-                    self.ai_turn(player)
+                    self.__easy_ai_turn(player)
                 else:
                     self.turn(player)
 
@@ -116,17 +116,17 @@ class Terminal:
             print("Your dice are: " + str(self.game.dice.get_dice()))
             while self.game.rerolls < self.game.REROLLS:
                 self.game.rerolls += 1
-                self.game.dice.reroll(self.get_reroll_choice())
+                self.game.dice.reroll(self.__get_reroll_choice())
                 print("Your dice are: " + str(self.game.dice.get_dice()))
             self.game.rerolls = 0
             player.scorecard.show_scorecard()
-            choice = self.get_category_choice(player)
+            choice = self.__get_category_choice(player)
             player.scorecard.score_roll(self.game.dice, choice)
             player.scorecard.show_scorecard()
 
         # play AI turn
             
-        def easy_ai_turn(self,player):
+        def __easy_ai_turn(self,player):
                 
                 print(player.name + "'s turn")
                 self.game.dice.roll()
@@ -453,8 +453,11 @@ class GUI:
             
             
 
-            elif event == "Reroll":              
-                if self.game.rerolls < self.game.REROLLS:
+            elif event == "Reroll": 
+                if rerolllist == []:
+                    psg.popup("No dice selected")
+                    continue             
+                elif self.game.rerolls < self.game.REROLLS:
                     self.game.rerolls += 1
                     self.game.dice.reroll(rerolllist)
                     for dice in rerolllist:
@@ -479,12 +482,18 @@ class GUI:
                 validflag = False
                 while True:
                     try:
-                        if player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
+                        if values['score_category'] == '':
+                            psg.popup("No category entered")
+                            break
+                        elif player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
                             psg.popup("Category already scored")
                             break                            
                         elif int(values['score_category']) not in range(1, 14):
                             psg.popup("Invalid choice- must be between 1 and 13")
                             break
+                        
+                        
+
                         else:
                             validflag = True
                             break
@@ -527,12 +536,16 @@ class GUI:
             [psg.Text("Round " + str(self.game.roundnum))],
             [psg.Text(str(player.name) + "'s turn")],
             [playerscoretable],
+            [psg.Button("Next turn")]
+            ,
         ]
 
         window = psg.Window("Yahtzee", layout, size=(700, 600), element_justification='c')
         while True:
             event,values = window.read()
-            if event == psg.WIN_CLOSED:
+            if event == "Next turn":
+                break
+            elif event == psg.WIN_CLOSED:
                 break
         
         window.close()
