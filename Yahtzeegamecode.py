@@ -140,7 +140,7 @@ class Scorecard:        # Scorecard class - built in scoring methods
         
     #use regex to check for small straight
     def score_small_straight(self, dice):
-        match = re.search(r'1234|2345|3456|12345|23456', ''.join(str(die) for die in sorted(dice.get_dice())))
+        match = re.search(r'1234|2345|3456|12345|23456', ''.join(str(die) for die in sorted(list(set(dice.get_dice())))))
         if match:
             return 30
         else:
