@@ -472,134 +472,134 @@ class EasyAI(Player):
             return chosen_category
         
 
-    class HardAI(Player):
-        def __init__(self):
-            super().__init__()
-            self.name = "Hard AI"
-            self.scorecard = Scorecard()
-            self.rerolls = 2
-            self.dice = Dice()
-            self.states = {
-    
-            1: np.array([1,0,0,0,0]), # 1 matching dice
-            2: np.array([0,1,0,0,0]), # 2 matching dice
-            3: np.array([0,0,1,0,0]), # 3 matching dice
-            4: np.array([0,0,0,1,0]), # 4 matching dice
-            5: np.array([0,0,0,0,1]), # 5 matching dice
+class HardAI(Player):
+    def __init__(self):
+        super().__init__()
+        self.name = "Hard AI"
+        self.scorecard = Scorecard()
+        self.rerolls = 2
+        self.dice = Dice()
+        self.states = {
 
-    
-            }
-            self.dice_states = {}
-            self.TransitionMatrix = np.array([  [120/1296, 0, 0, 0, 0],
-                                                [900/1296, 120/216, 0, 0, 0],
-                                                [250/1296, 80/216, 25/36, 0, 0],
-                                                [25/1296, 15/216, 10/36, 5/6, 0],
-                                                [1/1296, 1/216, 1/36, 1/6, 1]])
-            self.gamedicestate = None
-            self.upperscores = {}
-            self.upperscorecard = {
-                1: None,
-                2: None,
-                3: None,
-                4: None,
-                5: None,
-                6: None,
-                
-            }
-            self.target = None
-
-        
-        
+        1: np.array([1,0,0,0,0]), # 1 matching dice
+        2: np.array([0,1,0,0,0]), # 2 matching dice
+        3: np.array([0,0,1,0,0]), # 3 matching dice
+        4: np.array([0,0,0,1,0]), # 4 matching dice
+        5: np.array([0,0,0,0,1]), # 5 matching dice
 
 
-
-        def count_dice_values(dice_list):
-    # Initialize a dictionary to store the count of each dice value
-            dice_count = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
-
-    # Iterate through the dice_list and update the counts
-            for value in dice_list:
-        # Check if the value is a valid dice value
-                if value in dice_count:
-            # Increment the count for the respective dice value
-                    dice_count[value] += 1
-                else:
-                    print(f"Illegal dice value: {value}")
-    
-            return dice_count
-
-        def find_state(self, dice_count):
-            for dice, count in dice_count.items():
-                if count != 0:
-                    self.dice_states[dice] = [count, self.states[count]]
-            return self.dice_states
-        
-        def distance_point_to_line(X0, Y0):
-            dist = abs((-1.4163)*X0 - Y0 + 0.3332)/math.sqrt(((-1.4163)**2)+1)
-            return dist
-
-        def expectedvalue(self, dicevalue, state, rerollsleft):
-            if rerollsleft == 2:
-                probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[2]
-            elif rerollsleft == 1:
-                probability = self.TransitionMatrix.dot(state[1])[2]
-            payoff = ((dicevalue*state[0])/375)+(((dicevalue*state[0])/63)*(35/375))
-            return self.distance_point_to_line(payoff, probability)
-
-        def __choosemove(self, dice): # get dice to reroll 
-            optmovefoundtoken = False  # flag to indicate whether non-zero expected value move has been found
-            gamedicestate = self.find_state(self.count_dice_values(self.dice.get_dice()))
-        
-            for dice, state in gamedicestate.items():
-
-                self.upperscores[dice] = self.expectedvalue(dice, state, self.rerolls)
-            sorted_scores = sorted(list(self.upperscores.items()))
-
-            #check that the category has not been scored yet
-            for score in sorted_scores:
-                if self.upperscores[score[0]] == None:
-                    optmovefoundtoken = True
-                    self.target = score[0]
-                    return score[0]
-                
-                else:
-                    continue
-            if not optmovefoundtoken:
-                return (-1)
+        }
+        self.dice_states = {}
+        self.TransitionMatrix = np.array([  [120/1296, 0, 0, 0, 0],
+                                            [900/1296, 120/216, 0, 0, 0],
+                                            [250/1296, 80/216, 25/36, 0, 0],
+                                            [25/1296, 15/216, 10/36, 5/6, 0],
+                                            [1/1296, 1/216, 1/36, 1/6, 1]])
+        self.gamedicestate = None
+        self.upperscores = {}
+        self.upperscorecard = {
+            1: None,
+            2: None,
+            3: None,
+            4: None,
+            5: None,
+            6: None,
             
-        def reroll_stage(self, dice, aicatchoice):
-            if aicatchoice == -1:
-                self.dice.roll()
-                self.rerolls -= 1
+        }
+        self.target = None
+
+    
+    
+
+
+
+    def count_dice_values(dice_list):
+# Initialize a dictionary to store the count of each dice value
+        dice_count = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+
+# Iterate through the dice_list and update the counts
+        for value in dice_list:
+    # Check if the value is a valid dice value
+            if value in dice_count:
+        # Increment the count for the respective dice value
+                dice_count[value] += 1
             else:
-                for die in dice.get_dice():
-                    if die != aicatchoice:
-                        self.dice.reroll([die])
-                self.rerolls -= 1
+                print(f"Illegal dice value: {value}")
 
-                
+        return dice_count
 
+    def find_state(self, dice_count):
+        for dice, count in dice_count.items():
+            if count != 0:
+                self.dice_states[dice] = [count, self.states[count]]
+        return self.dice_states
+    
+    def distance_point_to_line(X0, Y0):
+        dist = abs((-1.4163)*X0 - Y0 + 0.3332)/math.sqrt(((-1.4163)**2)+1)
+        return dist
 
+    def expectedvalue(self, dicevalue, state, rerollsleft):
+        if rerollsleft == 2:
+            probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[2]
+        elif rerollsleft == 1:
+            probability = self.TransitionMatrix.dot(state[1])[2]
+        payoff = ((dicevalue*state[0])/375)+(((dicevalue*state[0])/63)*(35/375))
+        return self.distance_point_to_line(payoff, probability)
 
-        def play(self, dice):
+    def __choosemove(self, dice): # get dice to reroll 
+        optmovefoundtoken = False  # flag to indicate whether non-zero expected value move has been found
+        gamedicestate = self.find_state(self.count_dice_values(self.dice.get_dice()))
+    
+        for dice, state in gamedicestate.items():
+
+            self.upperscores[dice] = self.expectedvalue(dice, state, self.rerolls)
+        sorted_scores = sorted(list(self.upperscores.items()))
+
+        #check that the category has not been scored yet
+        for score in sorted_scores:
+            if self.upperscores[score[0]] == None:
+                optmovefoundtoken = True
+                self.target = score[0]
+                return score[0]
+            
+            else:
+                continue
+        if not optmovefoundtoken:
+            return (-1)
+        
+    def reroll_stage(self, dice, aicatchoice):
+        if aicatchoice == -1:
             self.dice.roll()
-            self.rerolls = 2
-            self.reroll_stage(dice, self.__choosemove(dice))
-            self.reroll_stage(dice, self.__choosemove(dice))
-            if self.target != None:
-                return self.scorecard.score_roll(dice, self.target)
-            elif self.target == None:
-                if self.scorecard.get_scorecard()["13.chance"] == None:
-                    self.scorecard.score_roll(dice, 13)
-                else:
-                    for key, value in self.scorecard.get_scorecard().items():
-                        if value == None:
-                            self.scorecard.score_roll(dice, key)
-                            break
-                        else:
-                            continue
+            self.rerolls -= 1
+        else:
+            for die in dice.get_dice():
+                if die != aicatchoice:
+                    self.dice.reroll([die])
+            self.rerolls -= 1
 
             
+
+
+
+    def play(self, dice):
+        self.dice.roll()
+        self.rerolls = 2
+        self.reroll_stage(dice, self.__choosemove(dice))
+        self.reroll_stage(dice, self.__choosemove(dice))
+        if self.target != None:
+            return self.scorecard.score_roll(dice, self.target)
+        elif self.target == None:
+            if self.scorecard.get_scorecard()["13.chance"] == None:
+                self.scorecard.score_roll(dice, 13)
+            else:
+                for key, value in self.scorecard.get_scorecard().items():
+                    if value == None:
+                        self.scorecard.score_roll(dice, key)
+                        break
+                    else:
+                        continue
+
+        
             
             #self.scorecard.score_roll(dice, self.__choosecategory(dice))
 
