@@ -3,7 +3,7 @@
 import numpy as np, math
 from Yahtzeegamecode import Scorecard
 
-game_dice = [1, 3, 2, 6, 6]
+game_dice = [1, 1, 1, 1, 6]
 states = {
     
     1: np.array([1,0,0,0,0]), # 1 matching dice

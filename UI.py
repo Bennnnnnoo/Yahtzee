@@ -1,4 +1,4 @@
-from Yahtzeegamecode import Game, Player, EasyAI, EZBoard, Dice, Scorecard
+from Yahtzeegamecode import Game, Player, EasyAI, EZBoard, HardAI
 ## UI code ##
 
 import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3, statistics, tkinter
@@ -105,8 +105,8 @@ class Terminal:
 
             print("Round " + str(self.game.roundnum))
             for player in self.game.players:
-                if isinstance(player, EasyAI):
-                    self.__easy_ai_turn(player)
+                if isinstance(player, EasyAI) or isinstance(player, HardAI):
+                    self.__ai_turn(player)
                 else:
                     self.turn(player)
 
@@ -130,7 +130,7 @@ class Terminal:
 
         # play AI turn
             
-        def __easy_ai_turn(self,player):
+        def __ai_turn(self,player):
                 
                 print(player.name + "'s turn")
                 self.game.dice.roll()
@@ -155,6 +155,7 @@ class GUI:
         self.game = Game()
         self.__theme = "DarkGrey1"
         self.__rules = 'Rules.txt'
+        self.__aidifficulty = 'Easy'
         self.EZboardopt = False
         self.dice_colours = ['white', 'purple']
         self.dice_images = {
@@ -577,7 +578,9 @@ class GUI:
             [psg.Text("Theme")],
             [psg.Combo(psg.theme_list(), default_value=self.__theme, key='theme')],
             [psg.T("Dice colour")],
-            [psg.Combo(self.dice_colours, default_value='white', key = 'dice_colour')], 
+            [psg.Combo(self.dice_colours, default_value='white', key = 'dice_colour')],
+            [psg.T("AI difficulty")],
+            [psg.Combo(['Easy', 'Hard'], default_value=self.__aidifficulty, key='aidifficulty')], 
             [psg.Checkbox('EZboard', default=self.EZboardopt, key='EZboard')],
             [psg.Button("Apply")]
             
@@ -591,6 +594,7 @@ class GUI:
                 self.__theme = values['theme']
                 psg.theme(self.__theme)
                 self.__dice_unpack(values['dice_colour'])
+                self.__aidifficulty = values['aidifficulty']
                 self.EZboardopt = values['EZboard']
                 break
             

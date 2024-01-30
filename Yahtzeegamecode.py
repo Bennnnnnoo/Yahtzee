@@ -506,6 +506,7 @@ class EasyAI(Player):
                 6: None,
                 
             }
+            self.target = None
 
         
         
@@ -545,31 +546,65 @@ class EasyAI(Player):
             payoff = ((dicevalue*state[0])/375)+(((dicevalue*state[0])/63)*(35/375))
             return self.distance_point_to_line(payoff, probability)
 
-        def __choosemove(self, dice):
-            optmovefoundtoken = False  
+        def __choosemove(self, dice): # get dice to reroll 
+            optmovefoundtoken = False  # flag to indicate whether non-zero expected value move has been found
             gamedicestate = self.find_state(self.count_dice_values(self.dice.get_dice()))
+        
             for dice, state in gamedicestate.items():
 
                 self.upperscores[dice] = self.expectedvalue(dice, state, self.rerolls)
             sorted_scores = sorted(list(self.upperscores.items()))
+
+            #check that the category has not been scored yet
             for score in sorted_scores:
                 if self.upperscores[score[0]] == None:
                     optmovefoundtoken = True
+                    self.target = score[0]
                     return score[0]
                 
                 else:
                     continue
             if not optmovefoundtoken:
                 return (-1)
+            
+        def reroll_stage(self, dice, aicatchoice):
+            if aicatchoice == -1:
+                self.dice.roll()
+                self.rerolls -= 1
+            else:
+                for die in dice.get_dice():
+                    if die != aicatchoice:
+                        self.dice.reroll([die])
+                self.rerolls -= 1
+
+                
+
 
 
         def play(self, dice):
             self.dice.roll()
+            self.rerolls = 2
+            self.reroll_stage(dice, self.__choosemove(dice))
+            self.reroll_stage(dice, self.__choosemove(dice))
+            if self.target != None:
+                return self.scorecard.score_roll(dice, self.target)
+            elif self.target == None:
+                if self.scorecard.get_scorecard()["13.chance"] == None:
+                    self.scorecard.score_roll(dice, 13)
+                else:
+                    for key, value in self.scorecard.get_scorecard().items():
+                        if value == None:
+                            self.scorecard.score_roll(dice, key)
+                            break
+                        else:
+                            continue
+
             
             
-            self.scorecard.score_roll(dice, self.__choosecategory(dice))
+            #self.scorecard.score_roll(dice, self.__choosecategory(dice))
 
-
+    class bing():
+        pass
 
 
 
