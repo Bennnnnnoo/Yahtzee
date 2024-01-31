@@ -155,7 +155,7 @@ class GUI:
         self.game = Game()
         self.__theme = "DarkGrey1"
         self.__rules = 'Rules.txt'
-        self.__aidifficulty = 'Easy'
+        self.__aidifficulty = 'Hard'
         self.EZboardopt = False
         self.dice_colours = ['white', 'purple']
         self.dice_images = {
@@ -325,8 +325,10 @@ class GUI:
             player.name = psg.popup_get_text("Enter your name: ")
 
         for self.player in range(self.AIplayers):
-            # add AI
-            self.game.players.append(EasyAI())
+            if self.__aidifficulty == 'Easy':
+                self.game.players.append(EasyAI())
+            elif self.__aidifficulty == 'Hard':
+                self.game.players.append(HardAI())
 
         # play game
         while self.game.roundnum < self.game.NUM_ROUNDS:       
@@ -393,7 +395,7 @@ class GUI:
         self.game.roundnum += 1
         psg.popup("Round " + str(self.game.roundnum))
         for player in self.game.players:
-            if isinstance(player, EasyAI):
+            if isinstance(player, EasyAI) or isinstance(player, HardAI):
                 self.ai_turn_gui(player)
             else:
                 self.turngui(player)
@@ -519,6 +521,7 @@ class GUI:
                         
                     except ValueError or TypeError:
                         psg.popup("Invalid choice")
+                        break
             
                 if validflag:
                     # score category     
@@ -543,7 +546,7 @@ class GUI:
     # play AI turn in GUI
     def ai_turn_gui(self, player):
         player.dice.roll()
-        player.play(player.dice)
+        player.play()
 
         scorecardlist = []
         for key in player.scorecard.keylist:

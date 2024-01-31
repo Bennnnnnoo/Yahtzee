@@ -513,7 +513,7 @@ class HardAI(Player):
 
 
 
-    def count_dice_values(dice_list):
+    def count_dice_values(self, dice_list):
 # Initialize a dictionary to store the count of each dice value
         dice_count = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
 
@@ -534,7 +534,7 @@ class HardAI(Player):
                 self.dice_states[dice] = [count, self.states[count]]
         return self.dice_states
     
-    def distance_point_to_line(X0, Y0):
+    def distance_point_to_line(self, X0, Y0):
         dist = abs((-1.4163)*X0 - Y0 + 0.3332)/math.sqrt(((-1.4163)**2)+1)
         return dist
 
@@ -545,19 +545,36 @@ class HardAI(Player):
             probability = self.TransitionMatrix.dot(state[1])[2]
         payoff = ((dicevalue*state[0])/375)+(((dicevalue*state[0])/63)*(35/375))
         return self.distance_point_to_line(payoff, probability)
+    
+    def __find_instances(self, dice, value):
+        indices = []
+        index = -1
+        
+        while True:
+            try:
+                index = dice.index(value, index+1)
+                indices.append(index)
+            except ValueError:
+                break
+        
+        return indices
 
-    def __choosemove(self, dice): # get dice to reroll 
+
+    def __choosemove(self): # get dice to reroll 
+        self.upperscores.clear()
         optmovefoundtoken = False  # flag to indicate whether non-zero expected value move has been found
         gamedicestate = self.find_state(self.count_dice_values(self.dice.get_dice()))
     
-        for dice, state in gamedicestate.items():
+        for dicekey, state in gamedicestate.items():
 
-            self.upperscores[dice] = self.expectedvalue(dice, state, self.rerolls)
-        sorted_scores = sorted(list(self.upperscores.items()))
+            self.upperscores[dicekey] = self.expectedvalue(dicekey, state, self.rerolls)
+        sorted_scores = sorted(list(self.upperscores.items()), key=lambda x: x[1], reverse=True)
+
+    
 
         #check that the category has not been scored yet
         for score in sorted_scores:
-            if self.upperscores[score[0]] == None:
+            if self.upperscorecard[score[0]] == None: # fix later to check actual scorecard
                 optmovefoundtoken = True
                 self.target = score[0]
                 return score[0]
@@ -568,43 +585,52 @@ class HardAI(Player):
             return (-1)
         
     def reroll_stage(self, dice, aicatchoice):
+        rerolllist = []
         if aicatchoice == -1:
             self.dice.roll()
             self.rerolls -= 1
         else:
-            for die in dice.get_dice():
+            for die in dice:
                 if die != aicatchoice:
-                    self.dice.reroll([die])
+                    for index in self.__find_instances(dice, die):
+                        if index not in rerolllist:
+                            rerolllist.append(index)
+            rerolllist = [num+1 for num in rerolllist]
+                    
+            self.dice.reroll(rerolllist)
             self.rerolls -= 1
-
+        self.dice_states.clear()
+        
             
 
 
 
-    def play(self, dice):
+    def play(self):
         self.dice.roll()
         self.rerolls = 2
-        self.reroll_stage(dice, self.__choosemove(dice))
-        self.reroll_stage(dice, self.__choosemove(dice))
+        self.reroll_stage(self.dice.get_dice(), self.__choosemove())
+        self.reroll_stage(self.dice.get_dice(), self.__choosemove())
         if self.target != None:
-            return self.scorecard.score_roll(dice, self.target)
+            self.upperscorecard[self.target] = 'scored' #self.scorecard.score_roll(self.dice.get_dice(), self.target)
+            return self.scorecard.score_roll(self.dice.get_dice(), self.target)
+
         elif self.target == None:
             if self.scorecard.get_scorecard()["13.chance"] == None:
-                self.scorecard.score_roll(dice, 13)
+                self.scorecard.score_roll(self.dice.get_dice(), 13)
             else:
                 for key, value in self.scorecard.get_scorecard().items():
                     if value == None:
-                        self.scorecard.score_roll(dice, key)
+                        self.scorecard.score_roll(self.dice.get_dice(), key)
                         break
                     else:
                         continue
+        self.dice_states.clear()
+        self.target = None
 
         
             
             #self.scorecard.score_roll(dice, self.__choosecategory(dice))
 
-    class bing():
-        pass
 
 
 
