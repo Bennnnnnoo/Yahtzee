@@ -183,18 +183,28 @@ class Scorecard:        # Scorecard class - built in scoring methods
     def get_score(self):
         return self.score
     
+    def get_upper_score(self):
+        return sum([self.scorecard[key] for key, value in self.scorecard.items() if (key in ["1.ones", "2.twos", "3.threes", "4.fours", "5.fives", "6.sixes"] and value != None)])
+    
     def genlist(self):
         dictlist = []
         for key, value in self.scorecard.items():
             dictlist.append([key,value])
         return dictlist
+    
+    def bonus_calc(self):
+        if self.get_upper_score() >= 63:
+            return '35'
+        else:
+            return f'0, ({self.get_upper_score() - 63})'
+            
 
         
     
 class EZBoard(Scorecard): # player assistance board
     def __init__(self, player):
         super().__init__()
-        self.scorecard = {
+        self.scorecard = {    # take out later as not needed?
             "1.ones": None,
             "2.twos": None,
             "3.threes": None,
@@ -249,12 +259,7 @@ class EZBoard(Scorecard): # player assistance board
             
         return self.scorecard
     
-    def bonus_calc(self):
-        if self.player.get_upper_score() >= 63:
-            return '35'
-        else:
-            return f'0, ({self.player.get_upper_score() - 63})'
-            
+    
     
     
         
@@ -348,8 +353,8 @@ class EasyAI(Player):
         self.dice = Dice()
         
 
-    def play(self, dice):
-        self.scorecard.score_roll(dice, self.__choosecategory(dice))
+    def play(self):
+        self.scorecard.score_roll(self.dice, self.__choosecategory(self.dice))
 
     # merge sort algorithm to sort the dictionary by value
     def __merge_sort(self, alist):
@@ -506,6 +511,15 @@ class HardAI(Player):
             6: None,
             
         }
+        self.lowerscorecard = {
+            7: None, # 3OAK
+            8: None, # 4OAK
+            9: None, # Full House
+            10: None, # Small Straight
+            11: None, # Large Straight
+            12: None, # Yahtzee
+            13: None # Chance
+        }
         self.target = None
 
     
@@ -543,8 +557,41 @@ class HardAI(Player):
             probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[2]
         elif rerollsleft == 1:
             probability = self.TransitionMatrix.dot(state[1])[2]
-        payoff = ((dicevalue*state[0])/375)+(((dicevalue*state[0])/63)*(35/375))
+        #payoff = ((dicevalue*state[0])/375)+(((dicevalue*state[0])/63)*(35/375))
+        payoff = ((dicevalue*3)/375)+(((dicevalue*3)/63)*(35/375))
         return self.distance_point_to_line(payoff, probability)
+    
+    def threeOAKexpectedvalue(self, dicevalue, state, rerollsleft):
+        if rerollsleft == 2:
+            probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[2]
+        elif rerollsleft == 1:
+            probability = self.TransitionMatrix.dot(state[1])[2]
+        payoff = ((dicevalue*3)/375)
+        return self.distance_point_to_line(payoff, probability)
+    
+    def fourOAKexpectedvalue(self, dicevalue, state, rerollsleft):
+        if rerollsleft == 2:
+            probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[3]
+        elif rerollsleft == 1:
+            probability = self.TransitionMatrix.dot(state[1])[3]
+        payoff = ((dicevalue*4)/375)
+        return self.distance_point_to_line(payoff, probability)
+    
+    def YahtzeeExpectedvalue(self, dicevalue, state, rerollsleft):
+        if rerollsleft == 2:
+            probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[4]
+        elif rerollsleft == 1:
+            probability = self.TransitionMatrix.dot(state[1])[4]
+        payoff = (50/375)
+        return self.distance_point_to_line(payoff, probability)
+    
+
+
+
+    
+
+        
+
     
     def __find_instances(self, dice, value):
         indices = []

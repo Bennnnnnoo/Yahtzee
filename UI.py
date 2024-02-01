@@ -148,7 +148,7 @@ class Terminal:
 class GUI:
 
     #dice image initialisation
-    
+    gamestarted = False
     
     #GUI initialisation
     def __init__(self):
@@ -197,12 +197,17 @@ class GUI:
                   ]
                   
         window = psg.Window("Yahtzee", layout, size=(700, 700), element_justification='c', resizable=True)
-        
+        window.finalize()
+        window.maximize()
+
         while True:
             event, values = window.read()
             if event == "Start new Game":
-                window.close()
+                
                 self.newgame()
+                while True:
+                    if GUI.gamestarted:
+                        break
                 
             elif event == "Load Game":
                 self.loadgame()
@@ -315,7 +320,7 @@ class GUI:
             except (ValueError, TypeError):
                 psg.popup("Invalid number of players")
                 continue
-            
+        
 
         for self.player in range(self.playernum):
             self.game.players.append(Player())
@@ -330,13 +335,14 @@ class GUI:
             elif self.__aidifficulty == 'Hard':
                 self.game.players.append(HardAI())
 
+        GUI.gamestarted = True
         # play game
         while self.game.roundnum < self.game.NUM_ROUNDS:       
             self.roundgui()
 
         # end sequence
 
-        psg.popup("Game Over!")
+        #psg.popup("Game Over!")
 
         winner = self.game.get_winner()
 
@@ -378,9 +384,11 @@ class GUI:
         while True:
             event, values = window.read()
             if event == "Back to menu":
+                window.close()
                 self.run()
                 break
             elif event == "Play again":
+                window.close()
                 self.newgame()
                 break
             elif event == psg.WIN_CLOSED:
@@ -428,7 +436,7 @@ class GUI:
         layout = [
             [psg.Text("Round " + str(self.game.roundnum))],
             [psg.Text(str(player.name) + "'s turn")],
-            [playerscoretable] + ([EZboardtable] if self.EZboardopt else []),
+            [playerscoretable] + ([EZboardtable] if self.EZboardopt else []), [psg.Table(values = [[player.scorecard.bonus_calc()]], headings = ['Bonus'], font=20, num_rows=1, justification = 'right')],
             [psg.Text('Your dice are: ' + str(self.game.dice.get_dice()), key='dice')]
         ] + [
             [psg.Button('', image_filename=self.dice_images[dice], image_size=(100, 100), image_subsample=2, button_color=(psg.theme_background_color()), key='dice' + str(index)) for index,dice in enumerate(self.game.dice.get_dice())]
@@ -437,12 +445,15 @@ class GUI:
             [psg.Text('click dice to reroll, then click reroll button')],
             
             [psg.Button("Reroll")],
+            [psg.Text("Enter the number of the category you want to score in")],
             [psg.InputText(tooltip='Enter the number of the category you want to score', key='score_category')],
             [psg.Button("Score")]
         ]
         
 
-        window = psg.Window("Yahtzee", layout, size=(700, 600), element_justification='c')
+        window = psg.Window("Yahtzee", layout, element_justification='c', resizable=True)
+        window.finalize()
+        window.maximize()
         rerolllist = []
 
         while True:
