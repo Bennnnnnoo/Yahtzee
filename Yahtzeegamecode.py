@@ -511,6 +511,7 @@ class HardAI(Player):
             6: None,
             
         }
+        self.lowerscores = {}
         self.lowerscorecard = {
             7: None, # 3OAK
             8: None, # 4OAK
@@ -541,6 +542,10 @@ class HardAI(Player):
                 print(f"Illegal dice value: {value}")
 
         return dice_count
+    
+    def __findmaxdice(self):
+        return sorted(list(self.count_dice_values(self.dice.get_dice()).items()), key=lambda x: x[1]).pop()
+
 
     def find_state(self, dice_count):
         for dice, count in dice_count.items():
@@ -577,7 +582,7 @@ class HardAI(Player):
         payoff = ((dicevalue*4)/375)
         return self.distance_point_to_line(payoff, probability)
     
-    def YahtzeeExpectedvalue(self, dicevalue, state, rerollsleft):
+    def YahtzeeExpectedvalue(self, state, rerollsleft):
         if rerollsleft == 2:
             probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[4]
         elif rerollsleft == 1:
@@ -611,17 +616,31 @@ class HardAI(Player):
         self.upperscores.clear()
         optmovefoundtoken = False  # flag to indicate whether non-zero expected value move has been found
         gamedicestate = self.find_state(self.count_dice_values(self.dice.get_dice()))
+        
     
         for dicekey, state in gamedicestate.items():
 
             self.upperscores[dicekey] = self.expectedvalue(dicekey, state, self.rerolls)
-        sorted_scores = sorted(list(self.upperscores.items()), key=lambda x: x[1], reverse=True)
+        
 
-    
+        for category in self.lowerscorecard:
+            highnumdice = self.__findmaxdice()
+            if self.lowerscorecard[category] == None:
+                if category == 7:
+                    self.lowerscores[category] = self.threeOAKexpectedvalue(highnumdice[0], gamedicestate[highnumdice[0]], self.rerolls)
+                elif category == 8:
+                    self.lowerscores[category] = self.fourOAKexpectedvalue(highnumdice[0], gamedicestate[highnumdice[0]], self.rerolls)
+                elif category == 12:
+                    self.lowerscores[category] = self.YahtzeeExpectedvalue(gamedicestate[highnumdice[0]], self.rerolls)
+                else:
+                    continue
 
+        mergedscores = {**self.upperscores, **self.lowerscores}
+        mergedscorecard = {**self.upperscorecard, **self.lowerscorecard}
+        sorted_scores = sorted(list(mergedscores.items()), key=lambda x: x[1], reverse=True)
         #check that the category has not been scored yet
         for score in sorted_scores:
-            if self.upperscorecard[score[0]] == None: # fix later to check actual scorecard
+            if mergedscorecard[score[0]] == None: # fix later to check actual scorecard
                 optmovefoundtoken = True
                 self.target = score[0]
                 return score[0]
@@ -632,16 +651,26 @@ class HardAI(Player):
             return (-1)
         
     def reroll_stage(self, dice, aicatchoice):
+        highnumdice = self.__findmaxdice()
         rerolllist = []
         if aicatchoice == -1:
             self.dice.roll()
             self.rerolls -= 1
         else:
-            for die in dice:
-                if die != aicatchoice:
-                    for index in self.__find_instances(dice, die):
-                        if index not in rerolllist:
-                            rerolllist.append(index)
+            if aicatchoice in range(1, 7):
+            
+                for die in dice:
+                        if die != aicatchoice:
+                            for index in self.__find_instances(dice, die):
+                                if index not in rerolllist:
+                                    rerolllist.append(index)
+            else:
+                for die in dice:
+                    if die != highnumdice[0]:
+                        for index in self.__find_instances(dice, die):
+                            if index not in rerolllist:
+                                rerolllist.append(index)
+
             rerolllist = [num+1 for num in rerolllist]
                     
             self.dice.reroll(rerolllist)
@@ -658,19 +687,101 @@ class HardAI(Player):
         self.reroll_stage(self.dice.get_dice(), self.__choosemove())
         self.reroll_stage(self.dice.get_dice(), self.__choosemove())
         if self.target != None:
-            self.upperscorecard[self.target] = 'scored' #self.scorecard.score_roll(self.dice.get_dice(), self.target)
-            return self.scorecard.score_roll(self.dice.get_dice(), self.target)
+            if self.target in range(1, 7):
+                self.upperscorecard[self.target] = 'scored' #self.scorecard.score_roll(self.dice.get_dice(), self.target)
+                self.scorecard.score_roll(self.dice, self.target)
+
+            else:
+                if self.target == 7:
+
+                    if self.scorecard.score_three_of_a_kind(self.dice.get_dice()) != 0:
+                        self.lowerscorecard[self.target] = 'scored'
+                        self.scorecard.score_roll(self.dice, self.target)
+
+                    elif self.upperscorecard[self.__findmaxdice()[0]] == None:
+                            self.upperscorecard[self.__findmaxdice()[0]] = 'scored'
+                            self.scorecard.score_roll(self.dice, self.__findmaxdice()[0])
+                    else:
+                        for key, value in {**self.upperscorecard, **self.lowerscorecard}.items():
+                            if value == None:
+                                self.scorecard.score_roll(self.dice, key)
+                                try:
+                                    self.lowerscorecard[key] = 'scored'
+                                except:
+                                    self.upperscorecard[key] = 'scored'
+                                    
+                                break
+                            else:
+                                continue
+
+                elif self.target == 8:
+                    if self.scorecard.score_four_of_a_kind(self.dice) != 0:
+                        self.lowerscorecard[self.target] = 'scored'
+                        self.scorecard.score_roll(self.dice, self.target)
+                    else:
+                        if self.lowerscorecard[7] == None and self.scorecard.score_three_of_a_kind(self.dice) != 0:
+                            self.lowerscorecard[7] = 'scored'
+                            self.scorecard.score_roll(self.dice, 7)
+                        elif self.upperscorecard[self.__findmaxdice()[0]] == None:
+                            self.upperscorecard[self.__findmaxdice()[0]] = 'scored'
+                            self.scorecard.score_roll(self.dice, self.__findmaxdice()[0])
+                        else:
+                            for key, value in {**self.upperscorecard, **self.lowerscorecard}.items():
+                                if value == None:
+                                    self.scorecard.score_roll(self.dice, key)
+                                    try:
+                                        self.lowerscorecard[key] = 'scored'
+                                    except:
+                                        self.upperscorecard[key] = 'scored'
+                                    break
+
+                                    
+                                else:
+                                    continue
+
+                elif self.target == 12:
+                    if self.scorecard.score_yahtzee(self.dice) != 0:
+                        self.lowerscorecard[self.target] = 'scored'
+                        self.scorecard.score_roll(self.dice, self.target)
+                    else:
+                        if self.lowerscorecard[8] == None and self.scorecard.score_four_of_a_kind(self.dice) != 0:
+                            self.lowerscorecard[8] = 'scored'
+                            self.scorecard.score_roll(self.dice, 8)
+                        elif self.lowerscorecard[7] == None and self.scorecard.score_three_of_a_kind(self.dice) != 0:
+                            self.lowerscorecard[7] = 'scored'
+                            self.scorecard.score_roll(self.dice, 7)
+                        elif self.upperscorecard[self.__findmaxdice()[0]] == None:
+                            self.upperscorecard[self.__findmaxdice()[0]] = 'scored'
+                            self.scorecard.score_roll(self.dice, self.__findmaxdice()[0])
+                        else:
+                            for key, value in {**self.upperscorecard, **self.lowerscorecard}.items():
+                                if value == None:
+                                    self.scorecard.score_roll(self.dice, key)
+                                    try:
+                                        self.lowerscorecard[key] = 'scored'
+                                    except:
+                                        self.upperscorecard[key] = 'scored'
+                                    break
+
+                                    
+                                else:
+                                    continue
+                
+                #self.lowerscorecard[self.target] = 'scored'
+                
 
         elif self.target == None:
-            if self.scorecard.get_scorecard()["13.chance"] == None:
-                self.scorecard.score_roll(self.dice.get_dice(), 13)
+            if self.lowerscorecard[13] == None:
+                self.scorecard.score_roll(self.dice, 13)
+                self.lowerscorecard[13] = 'scored'
             else:
-                for key, value in self.scorecard.get_scorecard().items():
+                for key, value in {**self.upperscorecard, **self.lowerscorecard}.items():
                     if value == None:
-                        self.scorecard.score_roll(self.dice.get_dice(), key)
+                        self.scorecard.score_roll(self.dice, key)
                         break
                     else:
                         continue
+
         self.dice_states.clear()
         self.target = None
 

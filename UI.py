@@ -200,14 +200,15 @@ class GUI:
         window.finalize()
         window.maximize()
 
-        while True:
+        while True: # fix later
             event, values = window.read()
+            
+            
+
             if event == "Start new Game":
-                
+                window.close()
                 self.newgame()
-                while True:
-                    if GUI.gamestarted:
-                        break
+                
                 
             elif event == "Load Game":
                 self.loadgame()
@@ -335,7 +336,7 @@ class GUI:
             elif self.__aidifficulty == 'Hard':
                 self.game.players.append(HardAI())
 
-        GUI.gamestarted = True
+        
         # play game
         while self.game.roundnum < self.game.NUM_ROUNDS:       
             self.roundgui()
@@ -345,7 +346,7 @@ class GUI:
         #psg.popup("Game Over!")
 
         winner = self.game.get_winner()
-
+        
         # get player scores
 
         playerlist = [player.get_name() for player in self.game.players]
@@ -571,7 +572,7 @@ class GUI:
             [psg.Text(str(player.name) + "'s turn")],
             [playerscoretable],
             [psg.Button("Next turn")]
-            ,
+            
         ]
 
         window = psg.Window("Yahtzee", layout, size=(700, 600), element_justification='c')
