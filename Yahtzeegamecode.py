@@ -510,6 +510,7 @@ class HardAI(Player):
             5: None,
             6: None,
             
+
         }
         self.lowerscores = {}
         self.lowerscorecard = {
@@ -560,10 +561,12 @@ class HardAI(Player):
     def expectedvalue(self, dicevalue, state, rerollsleft):
         if rerollsleft == 2:
             probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[2]
+
         elif rerollsleft == 1:
             probability = self.TransitionMatrix.dot(state[1])[2]
-        #payoff = ((dicevalue*state[0])/375)+(((dicevalue*state[0])/63)*(35/375))
+    
         payoff = ((dicevalue*3)/375)+(((dicevalue*3)/63)*(35/375))
+
         return self.distance_point_to_line(payoff, probability)
     
     def threeOAKexpectedvalue(self, dicevalue, state, rerollsleft):
@@ -591,13 +594,6 @@ class HardAI(Player):
         return self.distance_point_to_line(payoff, probability)
     
 
-
-
-    
-
-        
-
-    
     def __find_instances(self, dice, value):
         indices = []
         index = -1
@@ -677,9 +673,7 @@ class HardAI(Player):
             self.rerolls -= 1
         self.dice_states.clear()
         
-            
-
-
+        
 
     def play(self):
         self.dice.roll()
@@ -787,8 +781,7 @@ class HardAI(Player):
 
         
             
-            #self.scorecard.score_roll(dice, self.__choosecategory(dice))
-
+           
 
 
 

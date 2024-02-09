@@ -148,7 +148,7 @@ class Terminal:
 class GUI:
 
     #dice image initialisation
-    gamestarted = False
+    
     
     #GUI initialisation
     def __init__(self):
