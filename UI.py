@@ -313,11 +313,20 @@ class GUI:
     def newgame(self):
         self.game = Game()
         while True:
+            self.playernum = int(psg.popup_get_text("Enter the number of players: ", no_titlebar = True, modal = True))
             # get number of players
-            try:
-                self.playernum = int(psg.popup_get_text("Enter the number of players: "))
-                self.AIplayers = int(psg.popup_get_text("Enter the number of AI players: "))
+            if self.playernum == None:
+                del self.game
+                self.run()
                 break
+            try:
+                int(self.playernum)
+                self.AIplayers = int(psg.popup_get_text("Enter the number of AI players: "))
+                if self.playernum < 1 or self.AIplayers < 0:
+                    psg.popup('Invalid number of players')
+                    raise ValueError
+                else:
+                    break
             except (ValueError, TypeError):
                 psg.popup("Invalid number of players")
                 continue
@@ -402,6 +411,7 @@ class GUI:
     # round sequence
     def roundgui(self):
         self.game.roundnum += 1
+    
         psg.popup("Round " + str(self.game.roundnum))
         for player in self.game.players:
             if isinstance(player, EasyAI) or isinstance(player, HardAI):
