@@ -1,7 +1,7 @@
 from Yahtzeegamecode import Game, Player, EasyAI, EZBoard, HardAI
 ## UI code ##
 
-import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3, statistics, tkinter
+import random, math, PySimpleGUI as psg, time, os, sys , re, sqlite3, statistics, tkinter, threading
 
 
 # Terminal UI
@@ -63,7 +63,11 @@ class Terminal:
             
 
         # get user input for rerolls
-            
+
+        ###############################
+        # USE OF RECURSIVE VALIDATION #
+        ###############################
+                
         def __get_reroll_choice(self):
             try:
                 reroll_list = int(input("Enter the dice indexes you want to reroll: ")).split(',')
@@ -170,6 +174,12 @@ class GUI:
 
 
     # unpack dice images from folder
+        
+
+    #########################
+    # DIRECT FILE ACCESSING # 
+    #########################
+        
     def __dice_unpack(self, colour):
         dice_images_path = os.path.join(colour, '')
         dicepack = enumerate(sorted([filename for filename in os.listdir(colour)]))
@@ -177,11 +187,17 @@ class GUI:
             self.dice_images[index+1] = os.path.join(dice_images_path, dice)
             
     #run game in GUI
+            
+    
+
+    '''def YahtzeePopUp(self):
+        psg.popup('Yahtzee', auto_close_duration=3, image='YahtzeeGIF.gif')'''
 
     def run(self):
         # set theme
         psg.theme(self.__theme)
-
+        #self.YahtzeePopUp()
+        
         # main menu
         layout = [[psg.Text("Welcome to Yahtzee!", font=("Helvetica", 25))],
                   [psg.T("")],
@@ -311,16 +327,14 @@ class GUI:
     
     # starts a new game      
     def newgame(self):
+
         self.game = Game()
+
+
         while True:
-            self.playernum = int(psg.popup_get_text("Enter the number of players: ", no_titlebar = True, modal = True))
             # get number of players
-            if self.playernum == None:
-                del self.game
-                self.run()
-                break
             try:
-                int(self.playernum)
+                self.playernum = int(psg.popup_get_text("Enter the number of players: ", modal = True))
                 self.AIplayers = int(psg.popup_get_text("Enter the number of AI players: "))
                 if self.playernum < 1 or self.AIplayers < 0:
                     psg.popup('Invalid number of players')
@@ -331,7 +345,10 @@ class GUI:
                 psg.popup("Invalid number of players")
                 continue
         
-
+        ###########################
+        # DYNAMIC OBJECT CREATION #
+        ###########################
+            
         for self.player in range(self.playernum):
             self.game.players.append(Player())
 
@@ -352,7 +369,7 @@ class GUI:
 
         # end sequence
 
-        #psg.popup("Game Over!")
+        
 
         winner = self.game.get_winner()
         
@@ -432,8 +449,15 @@ class GUI:
         
         self.game.rerolls = 0
         self.game.dice.roll()
+        #if player.scorecard.score_yahtzee(self.game.dice) == 50:
+         #   psg.popup_animated('YahtzeeGIF.gif', background_color=psg.theme_background_color(), time_between_frames=100, no_titlebar = True, auto_close_duration=1000)
 
+        ###########################
+        # DYNAMIC OBJECT CREATION #
+        ###########################
+        
         # create EZboard if option selected
+
         if self.EZboardopt:
             EZboard = EZBoard(player)
             EZboard.update_scorecard(self.game.dice)
@@ -514,7 +538,9 @@ class GUI:
                         window['Reroll'].update('No rerolls left')
                     
                     window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
-                    
+                    if player.scorecard.score_yahtzee(self.game.dice) == 50:
+                        psg.popup_animated('YahtzeeGIF.gif', background_color=psg.theme_background_color(), time_between_frames=100, no_titlebar = True)
+                        break
                           
                 else:
                     window['Reroll'].update('No rerolls left')
@@ -630,7 +656,9 @@ class GUI:
         window.close()
         
 
-
+###############################
+# USE OF RECURSIVE VALIDATION #
+###############################
 
 # gets game mode from user input          
 def __get_game_mode():

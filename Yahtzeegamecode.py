@@ -8,7 +8,7 @@ class Player:           # Player class
     def __init__(self):
         
         self.name = None
-        self.scorecard = Scorecard()
+        self.scorecard = Scorecard() # players have a scorecard object
 
     def get_name(self):
         return self.name
@@ -200,7 +200,10 @@ class Scorecard:        # Scorecard class - built in scoring methods
             
 
         
-    
+########################
+# COMPLEX USE OF OOP #
+########################
+        
 class EZBoard(Scorecard): # player assistance board
     def __init__(self, player):
         super().__init__()
@@ -357,6 +360,11 @@ class EasyAI(Player):
         self.scorecard.score_roll(self.dice, self.__choosecategory(self.dice))
 
     # merge sort algorithm to sort the dictionary by value
+        
+    #################################
+    # USE OF RECURSION + MERGE SORT #
+    #################################
+        
     def __merge_sort(self, alist):
         if len(alist) <= 1:
             return alist
@@ -476,7 +484,10 @@ class EasyAI(Player):
             self.rerolls = 2
             return chosen_category
         
-
+#####################
+# COMPLEX USE OF OOP #
+#####################
+        
 class HardAI(Player):
     def __init__(self):
         super().__init__()
@@ -558,6 +569,10 @@ class HardAI(Player):
         dist = abs((-1.4163)*X0 - Y0 + 0.3332)/math.sqrt(((-1.4163)**2)+1)
         return dist
 
+    ###########################################################
+    # USE OF MATRIX ALGEBRA + COMPLEX USER DEFINED ALGORITHMS #
+    ###########################################################
+
     def expectedvalue(self, dicevalue, state, rerollsleft):
         if rerollsleft == 2:
             probability = self.TransitionMatrix.dot(self.TransitionMatrix.dot(state[1]))[2]
@@ -607,7 +622,10 @@ class HardAI(Player):
         
         return indices
 
-
+    ###################################
+    # COMPLEX USER DEFINED ALGORITHMS #
+    ###################################
+    
     def __choosemove(self): # get dice to reroll 
         self.upperscores.clear()
         optmovefoundtoken = False  # flag to indicate whether non-zero expected value move has been found
@@ -688,7 +706,7 @@ class HardAI(Player):
             else:
                 if self.target == 7:
 
-                    if self.scorecard.score_three_of_a_kind(self.dice.get_dice()) != 0:
+                    if self.scorecard.score_three_of_a_kind(self.dice) != 0:
                         self.lowerscorecard[self.target] = 'scored'
                         self.scorecard.score_roll(self.dice, self.target)
 
