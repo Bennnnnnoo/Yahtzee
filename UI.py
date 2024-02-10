@@ -334,15 +334,26 @@ class GUI:
         while True:
             # get number of players
             try:
-                self.playernum = int(psg.popup_get_text("Enter the number of players: ", modal = True))
-                self.AIplayers = int(psg.popup_get_text("Enter the number of AI players: "))
-                if self.playernum < 1 or self.AIplayers < 0:
-                    psg.popup('Invalid number of players')
+                self.playernum = psg.popup_get_text("Enter the number of players: ", modal = True)
+
+                if self.playernum == None:
+                    return self.run()
+                else:
+                    self.playernum = int(self.playernum)
+
+                self.AIplayers = psg.popup_get_text("Enter the number of AI players: ")
+                if self.AIplayers == None:
+                    return self.run()
+                else:
+                    self.AIplayers = int(self.AIplayers)
+
+                if self.playernum < 1 or self.AIplayers < 0 or self.AIplayers > 5:
+                    #psg.popup('Invalid number of players')
                     raise ValueError
                 else:
                     break
             except (ValueError, TypeError):
-                psg.popup("Invalid number of players")
+                psg.popup("Invalid number of players: must be at least 1 human player and no more than 5 AI players")
                 continue
         
         ###########################
@@ -405,7 +416,7 @@ class GUI:
         # add players to leaderboard
         for player in self.game.players:
             # check if player is AI
-            if not isinstance(player, EasyAI):
+            if not isinstance(player, EasyAI) and not isinstance(player, HardAI):
                 self.addtoleaderboard(player)
         
         while True:
@@ -494,24 +505,24 @@ class GUI:
         while True:
             event,values = window.read()
             
-            if event == "dice0":
+            if event == "dice0" and self.game.rerolls < 2:
                 rerolllist.append(1)
                 #hide dice after click
                 window['dice0'].update(visible=False)
             
-            if event == "dice1":
+            if event == "dice1" and self.game.rerolls < 2:
                 rerolllist.append(2)
                 window['dice1'].update(visible=False)
             
-            if event == "dice2":
+            if event == "dice2" and self.game.rerolls < 2:
                 rerolllist.append(3)
                 window['dice2'].update(visible=False)
 
-            if event == "dice3":
+            if event == "dice3" and self.game.rerolls < 2:
                 rerolllist.append(4)
                 window['dice3'].update(visible=False)
             
-            if event == "dice4":
+            if event == "dice4" and self.game.rerolls < 2:
                 rerolllist.append(5) # check this
                 window['dice4'].update(visible=False)
             
@@ -538,9 +549,9 @@ class GUI:
                         window['Reroll'].update('No rerolls left')
                     
                     window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
-                    if player.scorecard.score_yahtzee(self.game.dice) == 50:
-                        psg.popup_animated('YahtzeeGIF.gif', background_color=psg.theme_background_color(), time_between_frames=100, no_titlebar = True)
-                        break
+                    #if player.scorecard.score_yahtzee(self.game.dice) == 50:
+                    #    psg.popup_animated('YahtzeeGIF.gif', background_color=psg.theme_background_color(), time_between_frames=100, no_titlebar = True)
+                    #    break
                           
                 else:
                     window['Reroll'].update('No rerolls left')
@@ -554,12 +565,13 @@ class GUI:
                         if values['score_category'] == '':
                             psg.popup("No category entered")
                             break
-                        elif player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
-                            psg.popup("Category already scored")
-                            break                            
                         elif int(values['score_category']) not in range(1, 14):
                             psg.popup("Invalid choice- must be between 1 and 13")
                             break
+                        elif player.scorecard.scorecard[player.scorecard.keylist[int(values['score_category'])-1]] != None:
+                            psg.popup("Category already scored")
+                            break                            
+                        
                         
                         
 

@@ -625,9 +625,23 @@ class HardAI(Player):
     ###################################
     # COMPLEX USER DEFINED ALGORITHMS #
     ###################################
-    
+
     def __choosemove(self): # get dice to reroll 
         self.upperscores.clear()
+        if self.scorecard.score_full_house(self.dice) != 0 and self.lowerscorecard[9] == None:
+            self.target = 9
+            return 9
+        
+        elif self.scorecard.score_large_straight(self.dice) != 0 and self.lowerscorecard[11] == None:
+            self.target = 11
+            return 11
+        
+        elif self.scorecard.score_small_straight(self.dice) != 0 and self.lowerscorecard[10] == None:
+            self.target = 10
+            return 10
+        
+        
+        
         optmovefoundtoken = False  # flag to indicate whether non-zero expected value move has been found
         gamedicestate = self.find_state(self.count_dice_values(self.dice.get_dice()))
         
@@ -665,6 +679,8 @@ class HardAI(Player):
             return (-1)
         
     def reroll_stage(self, dice, aicatchoice):
+        
+
         highnumdice = self.__findmaxdice()
         rerolllist = []
         if aicatchoice == -1:
@@ -678,6 +694,15 @@ class HardAI(Player):
                             for index in self.__find_instances(dice, die):
                                 if index not in rerolllist:
                                     rerolllist.append(index)
+            elif aicatchoice == 9:
+                rerolllist.clear()
+            
+            elif aicatchoice == 10:
+                rerolllist.clear()
+
+            elif aicatchoice == 11:
+                rerolllist.clear()
+
             else:
                 for die in dice:
                     if die != highnumdice[0]:
@@ -750,6 +775,18 @@ class HardAI(Player):
                                     
                                 else:
                                     continue
+                
+                elif self.target == 9:
+                    self.scorecard.score_roll(self.dice, 9)
+                    self.lowerscorecard[9] = 'scored'
+
+                elif self.target == 10:
+                    self.scorecard.score_roll(self.dice, 10)
+                    self.lowerscorecard[10] = 'scored'
+
+                elif self.target == 11:
+                    self.scorecard.score_roll(self.dice, 11)
+                    self.lowerscorecard[11] = 'scored'
 
                 elif self.target == 12:
                     if self.scorecard.score_yahtzee(self.dice) != 0:
