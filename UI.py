@@ -381,8 +381,9 @@ class GUI:
             elif self.__aidifficulty == 'Hard':
                 self.game.players.append(HardAI())
 
-        for player in enumerate(self.AIplayers):
-            player[1].name = "AI " + str(player[0]+1)
+        for player in enumerate(self.game.players, start=1):
+            if isinstance(player[1], EasyAI) or isinstance(player[1], HardAI):
+                player[1].name = "AI " + str(player[0]-self.playernum)
         
         # play game
         while self.game.roundnum < self.game.NUM_ROUNDS:       
@@ -399,7 +400,7 @@ class GUI:
         playerlist = [player.get_name() for player in self.game.players]
         scorelist = [player.scorecard.get_score() for player in self.game.players]
         # create dictionary of player names and scores
-        scorecarddict = dict(zip(playerlist, scorelist))
+        scorecarddict = sorted(dict(zip(playerlist, scorelist)).items(), key=lambda x: x[1], reverse=True)
 
         tablelist = []
 
