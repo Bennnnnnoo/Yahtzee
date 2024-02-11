@@ -704,7 +704,7 @@ class HardAI(Player):
                 rerolllist.clear()
 
             else:
-                for die in dice:
+                for die in dice:                            ##### fix this later
                     if die != highnumdice[0]:
                         for index in self.__find_instances(dice, die):
                             if index not in rerolllist:
@@ -742,11 +742,10 @@ class HardAI(Player):
                         for key, value in {**self.upperscorecard, **self.lowerscorecard}.items():
                             if value == None:
                                 self.scorecard.score_roll(self.dice, key)
-                                try:
-                                    self.lowerscorecard[key] = 'scored'
-                                except:
+                                if key in range(1, 7):
                                     self.upperscorecard[key] = 'scored'
-                                    
+                                else:
+                                    self.lowerscorecard[key] = 'scored'
                                 break
                             else:
                                 continue
@@ -766,10 +765,10 @@ class HardAI(Player):
                             for key, value in {**self.upperscorecard, **self.lowerscorecard}.items():
                                 if value == None:
                                     self.scorecard.score_roll(self.dice, key)
-                                    try:
-                                        self.lowerscorecard[key] = 'scored'
-                                    except:
+                                    if key in range(1, 7):
                                         self.upperscorecard[key] = 'scored'
+                                    else:
+                                        self.lowerscorecard[key] = 'scored'
                                     break
 
                                     
@@ -803,13 +802,14 @@ class HardAI(Player):
                             self.upperscorecard[self.__findmaxdice()[0]] = 'scored'
                             self.scorecard.score_roll(self.dice, self.__findmaxdice()[0])
                         else:
-                            for key, value in {**self.upperscorecard, **self.lowerscorecard}.items():
+                            mergedlist = {**self.upperscorecard, **self.lowerscorecard}
+                            for key, value in mergedlist.items():
                                 if value == None:
                                     self.scorecard.score_roll(self.dice, key)
-                                    try:
-                                        self.lowerscorecard[key] = 'scored'
-                                    except:
+                                    if key in range(1, 7):
                                         self.upperscorecard[key] = 'scored'
+                                    else:
+                                        self.lowerscorecard[key] = 'scored'
                                     break
 
                                     

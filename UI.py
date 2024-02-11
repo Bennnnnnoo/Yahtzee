@@ -41,13 +41,15 @@ class Terminal:
             # add players to game
             for player in range(self.playernum):
                 self.game.players.append(Player())
+
+            for player in self.game.players:
+                player.name = input("Enter your name: ")
+            
             # add AI players to game
             for player in range(self.AIplayers):
                 self.game.players.append(EasyAI())
 
             # get player names
-            for player in self.game.players:
-                player.name = input("Enter your name: ")
             
             # play game
             while self.game.roundnum < 13:
@@ -57,8 +59,8 @@ class Terminal:
             
             # end sequence
             for player in self.game.players:
-                print(player.name + "'s score is: " + str(player.scorecard.get_total_score()))
-                print('the winner is'+ self.game.get_winner() + 'with a score of' + self.game.get_winner.score())
+                print(player.name + "'s score is: " + str(player.scorecard.count_score()))
+            print('the winner is '+ self.game.get_winner().name + ' with a score of ' + str(self.game.get_winner().scorecard.count_score()))
 
             
 
@@ -70,7 +72,13 @@ class Terminal:
                 
         def __get_reroll_choice(self):
             try:
-                reroll_list = int(input("Enter the dice indexes you want to reroll: ")).split(',')
+                reroll_list = (input("Enter the dice indexes you want to reroll, seperated by a comma: ")).split(',')
+                if reroll_list == ['']:
+                    return []
+                for dice in reroll_list:
+                    if int(dice) not in range(1, 6):
+                        print("Invalid choice- must be between 1 and 5")
+                        reroll_list = self.__get_reroll_choice()
             except ValueError or TypeError:
                 print("Invalid choice")
                 reroll_list = self.__get_reroll_choice()
@@ -159,7 +167,7 @@ class GUI:
         self.game = Game()
         self.__theme = "DarkGrey1"
         self.__rules = 'Rules.txt'
-        self.__aidifficulty = 'Hard'
+        self.__aidifficulty = 'Easy'
         self.EZboardopt = False
         self.dice_colours = ['white', 'purple']
         self.dice_images = {
@@ -373,6 +381,8 @@ class GUI:
             elif self.__aidifficulty == 'Hard':
                 self.game.players.append(HardAI())
 
+        for player in enumerate(self.AIplayers):
+            player[1].name = "AI " + str(player[0]+1)
         
         # play game
         while self.game.roundnum < self.game.NUM_ROUNDS:       
@@ -639,11 +649,11 @@ class GUI:
         layout = [
             [psg.Text("Settings")],
             [psg.Text("Theme")],
-            [psg.Combo(psg.theme_list(), default_value=self.__theme, key='theme')],
+            [psg.Combo(psg.theme_list(), default_value=self.__theme, key='theme', readonly=True)],
             [psg.T("Dice colour")],
-            [psg.Combo(self.dice_colours, default_value='white', key = 'dice_colour')],
+            [psg.Combo(self.dice_colours, default_value='white', key = 'dice_colour', readonly=True)],
             [psg.T("AI difficulty")],
-            [psg.Combo(['Easy', 'Hard'], default_value=self.__aidifficulty, key='aidifficulty')], 
+            [psg.Combo(['Easy', 'Hard'], default_value=self.__aidifficulty, key='aidifficulty', readonly=True)], 
             [psg.Checkbox('EZboard', default=self.EZboardopt, key='EZboard')],
             [psg.Button("Apply")]
             
