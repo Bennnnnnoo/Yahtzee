@@ -23,7 +23,7 @@ class Terminal:
             
             
             while True:
-                # get number of players
+                # get and validate number of players
                 try:
                     self.playernum = int(input("Enter the number of players: "))
                     self.AIplayers = int(input("Enter the number of AI players: "))
@@ -42,6 +42,7 @@ class Terminal:
             for player in range(self.playernum):
                 self.game.players.append(Player())
 
+            # get player names
             for player in self.game.players:
                 player.name = input("Enter your name: ")
             
@@ -49,7 +50,7 @@ class Terminal:
             for player in range(self.AIplayers):
                 self.game.players.append(EasyAI())
 
-            # get player names
+            
             
             # play game
             while self.game.roundnum < 13:
@@ -64,7 +65,7 @@ class Terminal:
 
             
 
-        # get user input for rerolls
+        # get and validate user input for rerolls
 
         ###############################
         # USE OF RECURSIVE VALIDATION #
@@ -85,7 +86,7 @@ class Terminal:
             
             return reroll_list
             
-        # get user input for category choice
+        # get and validate user input for category choice
 
         def __get_category_choice(self,player):
             try:
@@ -204,7 +205,7 @@ class GUI:
     def run(self):
         # set theme
         psg.theme(self.__theme)
-        #self.YahtzeePopUp()
+        
         
         # main menu
         layout = [[psg.Text("Welcome to Yahtzee!", font=("Helvetica", 25))],
@@ -224,7 +225,7 @@ class GUI:
         window.finalize()
         window.maximize()
 
-        while True: # fix later
+        while True: 
             event, values = window.read()
             
             
@@ -273,6 +274,7 @@ class GUI:
         leaderboard = c.fetchall()
         conn.close()
 
+        # leaderboard representation
         layout = [[psg.Text("Leaderboard")],
                   [psg.T("")],
                   [psg.Table(values = leaderboard, headings = ["Player", "Score"], num_rows=(len(leaderboard)), auto_size_columns=True, justification='c')],
@@ -292,7 +294,7 @@ class GUI:
 
     # add player to leaderboard database
     def addtoleaderboard(self, player):
-        # 
+        
         conn = sqlite3.connect('leaderboard.db')
         c = conn.cursor()
         c.execute('''
@@ -356,7 +358,7 @@ class GUI:
                     self.AIplayers = int(self.AIplayers)
 
                 if self.playernum < 1 or self.AIplayers < 0 or self.AIplayers > 5:
-                    #psg.popup('Invalid number of players')
+                    
                     raise ValueError
                 else:
                     break
@@ -400,7 +402,7 @@ class GUI:
         playerlist = [player.get_name() for player in self.game.players]
         scorelist = [player.scorecard.get_score() for player in self.game.players]
         # create dictionary of player names and scores
-        scorecarddict = sorted(dict(zip(playerlist, scorelist)).items(), key=lambda x: x[1], reverse=True)
+        scorecarddict = dict(sorted(dict(zip(playerlist, scorelist)).items(), key=lambda x: x[1], reverse=True))
 
         tablelist = []
 
@@ -466,7 +468,7 @@ class GUI:
         for key in player.scorecard.keylist:
             scorecardlist.append([key, player.scorecard.scorecard[key]])
 
-      
+        # make table out of player scorecard
         playerscoretable = psg.Table(values = scorecardlist, headings = ["Category", "Score"], num_rows=(14), auto_size_columns=True, justification='c')
         
         self.game.rerolls = 0
@@ -501,7 +503,7 @@ class GUI:
         ] + [
             [psg.Text('click dice to reroll, then click reroll button')],
             
-            [psg.Button("Reroll")],
+            [psg.Button("Reroll", disabled = False)],
             [psg.Text("Enter the number of the category you want to score in")],
             [psg.InputText(tooltip='Enter the number of the category you want to score', key='score_category')],
             [psg.Button("Score")]
@@ -534,11 +536,11 @@ class GUI:
                 window['dice3'].update(visible=False)
             
             if event == "dice4" and self.game.rerolls < 2:
-                rerolllist.append(5) # check this
+                rerolllist.append(5) 
                 window['dice4'].update(visible=False)
             
             
-
+            # reroll function
             elif event == "Reroll": 
                 if rerolllist == []:
                     psg.popup("No dice selected")
@@ -555,14 +557,13 @@ class GUI:
                         EZboard.update_scorecard(self.game.dice)
                         EZboardtable.update(EZboard.genlist())
 
-                    
+                    # check if user has rerolls left
                     if self.game.rerolls == self.game.REROLLS:
                         window['Reroll'].update('No rerolls left')
+                        window['Reroll'].update(disabled = True)
                     
                     window['dice'].update('Your dice are: ' + str(self.game.dice.get_dice()))
-                    #if player.scorecard.score_yahtzee(self.game.dice) == 50:
-                    #    psg.popup_animated('YahtzeeGIF.gif', background_color=psg.theme_background_color(), time_between_frames=100, no_titlebar = True)
-                    #    break
+                    
                           
                 else:
                     window['Reroll'].update('No rerolls left')
@@ -662,6 +663,7 @@ class GUI:
 
         window = psg.Window("Settings", layout, element_justification='c')
 
+        # setting changes
         while True:
             event, values = window.read()
             if event == "Apply":
